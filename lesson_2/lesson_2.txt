@@ -1,0 +1,10 @@
+Defining Classes
+Class attributes ve instance attributes
+SELF Keyword
+@staticmethod
+Special Methods :
+constracture fonksiyon __init__
+constracture fonksiyon __str__
+constracture fonksiyon __len__
+
+abstraction and encapsulation
