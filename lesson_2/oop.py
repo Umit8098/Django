@@ -227,26 +227,243 @@ os.system('cls' if os.name == 'nt' else 'clear')
 ## 3.inheritance and 4.polymorphism : >>>>>>>
 ##    kalıtım: bir classtan yeni classlar türetilmesi
 
-class Person:
-    company = "Clarusway"
+# # 1. kısım
+
+# class Person:
+#     company = "Clarusway"
     
+#     def __init__(self, name, age):
+#         self.name = name
+#         self.age = age
+    
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}"
+
+# class Employee(Person):
+    
+#     def __init__(self, name, age, path):
+#         self.name = name
+#         self.age = age
+#         self.path = path
+    
+#     # bu class'ın içinde __str__ diye bir method yok ama inheritance kalıtım kapsamında yukarıdan geliyor.
+
+# emp1 = Employee('Barry', 44, 'FS')
+# print(emp1)
+
+
+
+
+
+# # 2. kısım
+# class Person:
+#     company = "Clarusway"
+    
+#     def __init__(self, name, age):
+#         self.name = name
+#         self.age = age
+    
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}"
+
+# class Employee(Person):
+    
+#     def __init__(self, name, age, path):
+#         # self.name = name
+#         # self.age = age
+#         super().__init__(name, age)
+#         # super().__init__(name, age) ile; sen kimden türetildi isen git onun init fonksiyonunu çalıştır. Ancak yukarıdaki init ihtiyacımızı karşılamıyorsa kendimiz de baştan init yazabiliriz.
+#         self.path = path
+    
+# emp1 = Employee('Barry', 44, 'FS')
+# print(emp1)
+
+
+
+
+
+## 4.polymorphism : (evet ben seni yukarıdan inherit etttim ama yukarıdaki buradaki örnekte __str__ artık benim işime yaramıyor, benim seni override edip yeniden yazabiliyor olmam lazım buna da polymorphisim denir, yukarıdaki methodu değiştirebilme yeniden tanımlayabilme polymorphisim oluyor. ) İnherit ettiğimiz methodları kullanmayıp istediğimiz biçimde değiştiriyoruz.
+
+
+# # 1.kısım
+# class Person:
+#     company = "Clarusway"
+    
+#     def __init__(self, name, age):
+#         self.name = name
+#         self.age = age
+    
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}"
+    
+#     def details(self):
+#         print(f"Name: {self.name}    Age: {self.age}")
+
+# class Employee(Person):
+    
+#     def __init__(self, name, age, path):
+#         # self.name = name
+#         # self.age = age
+#         super().__init__(name, age)
+#         self.path = path
+        
+#     # override yapıyoruz (Yukarıdaki str'ı ezdik.) Gerçi __str__ special method olduğu için anlaşılmıyor o yüzden alttaki details kısmını incele! 
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}   Path: {self.path}"
+    
+#      # override (Yukarıdaki details methodu işimize yaramıyor (path'i de ilave etmek istiyoruz ama yukarıda path yok), biz de override ediyoruz, değiştiriyoruz.)
+#     def details(self):
+#         print(f"Name: {self.name}   Age: {self.age}   Path: {self.path}")
+    
+# emp1 = Employee('Barry', 44, 'FS')
+# # print(emp1)
+# emp1.details()
+
+
+
+
+# 2.kısım
+# class Person:
+#     company = "Clarusway"
+    
+#     def __init__(self, name, age):
+#         self.name = name
+#         self.age = age
+    
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}"
+    
+#     def details(self):
+#         print(f"Name: {self.name}\nAge: {self.age}")
+
+# class Employee(Person):
+    
+#     def __init__(self, name, age, path):
+#         # self.name = name
+#         # self.age = age
+#         super().__init__(name, age)
+#         self.path = path
+
+#     # override
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}   Path: {self.path}"
+    
+#     # override (Bu 2. kısımda da yukarıdan inherit ettiğimiz kısımlara ilave yapmak istiyorsak super ile yukarıyı alıp ona ilave edeceklerimizi override edebiliyoruz.)
+#     def details(self):
+#         super().details()
+#         print(f"Path: {self.path}")
+    
+# emp1 = Employee('Barry', 44, 'FS')
+# # print(emp1)
+# emp1.details()
+
+# # mro() bize soy ağacını çıkarıyor.
+# print(Employee.mro())
+
+
+
+
+
+
+
+# # Multiple Inheritance (bir class' ı iki farkı class tan türetebiliyoruz. Bir class iki farklı class tan inherite edebilir. Birden fazla class'ı alıp o classlardan yeni bir class türetebiliyoruz.)
+# class Person:
+#     company = "Clarusway"
+    
+#     def __init__(self, name, age):
+#         self.name = name
+#         self.age = age
+    
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}"
+    
+#     def details(self):
+#         print(f"Name: {self.name}\nAge: {self.age}")
+
+# class Lang:
+#     def __init__(self, langs):
+#         self.langs = langs
+
+# class Employee(Person, Lang):
+    
+#     def __init__(self, name, age, path):
+#         super().__init__(name, age)
+#         Lang.__init__(self, ["Python", "Js"])
+#         self.path = path
+
+#     # override
+#     def __str__(self):
+#         return f"Name: {self.name}   Age: {self.age}   Path: {self.path}"
+    
+#     # override 
+#     def details(self):
+#         super().details()
+#         print(f"Path: {self.path}")
+#         print(f"Langs: {self.langs}")
+    
+# emp1 = Employee('Barry', 44, 'FS')
+# emp1.details()
+
+# # mro() bize soy ağacını çıkarıyor.
+# print(Employee.mro())
+
+
+
+
+
+
+
+# # inner class (class içinde class ve bunun ismi hep Meta olacaktır djangoda standarrttır.)
+
+# from django.db import models
+
+# class Article(models.Model):
+#     first_name = models.CharField(max_length=30)
+#     last_name = models.CharField(max_length=30)
+    
+#     class Meta:
+#         ordering = ["last_name"]
+
+
+
+
+
+
+# örnek
+class Customer:
     def __init__(self, name, age):
         self.name = name
         self.age = age
-    
+        self.__id = 1234
+        self.movements = []
+        
     def __str__(self):
-        return f"Name: {self.name}   Age: {self.age}    Path: {self.path}"
-
-class Employee(Person):
+        return f"Name : {self.name}  id : {self.__id}"
     
-    def __init__(self, name, age, path):
-        self.name = name
-        self.age = age
-        self.path = path
+    def add_movement(self, amount, date, explain):
+        self.movements.append({"amount": amount, "date": date, "explain": explain})
     
-    # bu class'ın içinde __str__ diye bir method yok ama inheritance kalıtım kapsamında yukarıdan geliyor.
+    def all_movements(self):
+        for i in self.movements:
+            print(i["date"], i["amount"], i["explain"])
+    
+    def balance(self):
+        # total = 0
+        # for i in self.movements:
+        #     total += i["amount"]
+        # print(total)
+        return sum(i["amount"] for i in self.movements)
+
+custom = Customer("barry", 44)
+print(custom)
+custom.add_movement(5000, "15.10.2021", "Salary")
+custom.add_movement(-1000, "16.10.2021", "Rent")
+custom.add_movement(-500, "16.10.2021", "Bills")
+custom.add_movement(-2000, "16.10.2021", "Credite Card")
+custom.all_movements()
+# custom.balance()
+print(custom.balance())
 
 
-emp1 = Employee('Barry', 44, 'FS')
-print(emp1)
+
 
