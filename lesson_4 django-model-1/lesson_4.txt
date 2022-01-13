@@ -1,0 +1,53 @@
+python --version
+pip --version
+py -m venv env
+.\env\Scripts\activate
+(deactivate)
+pip install django
+python -m pip install --upgrade pip  # optional -- upgrade pip version
+pip freeze
+
+/////////////////////
+pip freeze > requirements.txt
+(pip install -r .\requirements.txt)
+////////////////////
+
+/// proje oluşturma ///
+
+django-admin startproject main .
+
+
+/// app oluşturma ///
+
+py manage.py startapp store
+
+
+
+py manage.py runserver        (localhost ta server çalışıyor.)
+
+yeni bir powershell terminali açıp venv active edip yapmak istediklerimizi burda yapıyoruz.
+
+
+
+/// model oluşturduk ///
+(save etmeyi unutma!!! yoksa çalışmaz.)
+
+py manage.py makemigrations          veya
+python manage.py makemigrations
+
+
+/// database' e syncronize etmek için ///
+
+py manage.py migrate            veya
+python manage.py migrate
+
+
+
+/// admin dashboard oluşturmak için ///
+
+py manage.py createsuperuser        veya 
+python manage.py createsuperuser         
+
+
+
+git'e push etmeden önce .gitignore dosyası oluştur. venv'ın ismini ekle (burada "env/" oluyor.) 
