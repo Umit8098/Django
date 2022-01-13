@@ -1,0 +1,27 @@
+python --version
+pip --version
+py -m venv clenv
+.\clenv\Scripts\activate
+(deactivate)
+pip install django
+python -m pip install --upgrade pip  # optional -- upgrade pip version
+pip freeze
+pip freeze > requirements.txt
+(pip install -r .\requirements.txt)
+
+/// proje oluşturma ///
+
+django-admin startproject clarusway
+
+clarusway'i src' ye çevir ( rename et )
+src'nin içine gir ( cd .\src\ )  ( manage.py komutuna ulaşmak için)
+
+/// app oluşturma ///
+
+py manage.py startapp fscohort
+
+py manage.py runserver        (localhost ta server çalışıyor.)
+
+yeni bir powershell terminali açıp venv active edip yapmak istediklerimizi burda yapıyoruz.
+
+git'e push etmeden önce .gitignore dosyası oluştur. venv'ın ismini ekle (burada "clenv/" oluyor.) 
