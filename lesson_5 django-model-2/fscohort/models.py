@@ -7,7 +7,7 @@ class Student(models.Model):
     last_name = models.CharField(max_length=30)
     number = models.IntegerField()
     about_me = models.TextField(null=True, blank=True)
-    image = models.ImageField(null=True, blank=True, upload_to="media/")
+    image = models.ImageField(null=True, blank=True)
     register_date = models.DateTimeField(auto_now_add=True)
     last_update_date = models.DateTimeField(auto_now=True)
     
