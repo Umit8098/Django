@@ -10,6 +10,14 @@ class Student(models.Model):
     image = models.ImageField(null=True, blank=True)
     register_date = models.DateTimeField(auto_now_add=True)
     last_update_date = models.DateTimeField(auto_now=True)
+    YEAR_IN_SCHOOL_CHOICES = [
+        ('FR', 'Freshman'),
+        ('SO', 'Sophomore'),
+        ('JR', 'Junior'),
+        ('SR', 'Senior'),
+        ('GR', 'Graduate'),
+    ]
+    year_in_school = models.CharField(max_length=50,  choices=YEAR_IN_SCHOOL_CHOICES, default='FR')
     
     def __str__(self):
         return (f"{self.number} - {self.first_name}")
