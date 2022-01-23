@@ -34,7 +34,7 @@ urlpatterns = [
 ]
 ```
 
-
+store un urls.py ına git dedik. Ancak store un urls.py ı yok onun için biz oluşturuyoruz, ve içerisine aşağıdaki kodları yazıyoruz.
 
 ```
 from django.urls import path
@@ -45,7 +45,7 @@ urlpatterns = [
 ]
 ```
 
-
+store un urls.py ının işaret ettiği home views ünü oluşturmamız lazım. Hemen store un urls.py ın içerisinde şimdilik "Welcome to Backend" döndürecek bir fonksiyon şeklinde view tanımlıyoruz .
 
 ```
 from django.shortcuts import render
