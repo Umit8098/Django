@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Apps
     'fscohort',
+    'dj_relationships',
     # 3rd party package
     'django_extensions',
 ]
