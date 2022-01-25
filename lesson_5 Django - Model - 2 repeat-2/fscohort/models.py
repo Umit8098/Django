@@ -7,6 +7,8 @@ class Student(models.Model):
     last_name = models.CharField(max_length=30)
     # number = models.CharField(max_length=30)
     number = models.IntegerField()
+    image = models.ImageField(null=True, blank=True)
+
     
     def __str__(self):
         return (f'{self.number} - {self.first_name}')
