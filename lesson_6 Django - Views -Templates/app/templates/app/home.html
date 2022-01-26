@@ -1,0 +1,114 @@
+<h1>Hello World!</h1>
+
+<p>This is our first paragraph...</p>
+
+<h2>{{title}}</h2>
+
+<h2>{{dict1.django}}</h2>
+
+<h2>{{my_list.0}}</h2>
+
+<hr>
+
+<h2>
+    {% for num in my_list %}
+        {{num}} <br>
+    {% endfor %}    
+</h2>
+
+<hr>
+
+<h2>
+    {% for num in my_list %}
+        <li>{{num}}</li>
+    {% endfor %}    
+</h2>
+
+<hr>
+
+<h2>
+    {% for i in my_list %} 
+            
+    {% if i == 3 %}
+        <p>henry</p>
+    {% else %} {{i}} <br>
+    {% endif %}
+    
+    {% endfor %}    
+</h2>
+
+<hr>
+
+<p>csrf_token</p>
+{% csrf_token %}
+
+<hr>
+
+Baş harfleri büyük:
+<h2>{{dict1.django | title}}</h2>
+
+<hr>
+
+<p>This is a single line comment</p>
+{# This is a single line comment #}
+
+<p>This is a multi line comment,you can't see it on the page!</p>
+{% comment %}
+    This is a multi line comment,
+    you can't see it on the page!
+{% endcomment %}
+
+<hr>
+
+<h3>Hello, this is home page</h3>
+{{ title }} <br>
+{{ dict1 }} <br>
+{{ dict1.django }} <br>
+{% for i in my_list %}
+{{ i }} <br>
+{% endfor %}
+{{ my_list }}
+
+<hr>
+
+<h2>{{ request.method }}</h2>
+<h2>{{ request.COOKIES }}</h2>
+<h2>{{ first_name }}</h2>
+<p>My first name is {{ first_name }}.</p>
+
+
+<hr>
+
+{% load static %}
+
+<head>
+    <link rel="stylesheet" href="{% static 'app/style.css' %}">
+</head>
+
+
+<img src="{% static 'app/example.jpg' %}" width="300" alt="Example">
+
+<img src="{% static 'kedi.jpg' %}" width="199" alt="Kedi">
+
+<hr>
+
+<video width="400" height="400" controls>
+    <source src="{% static 'app/cat.mp4' %}" type="video/mp4">
+</video>
+
+<video width="400" height="400" controls>
+    <source src="{% static 'cat.mp4' %}" type="video/mp4">
+</video>
+
+<hr>
+
+{% comment %}
+<video width="400" height="400" controls>
+    <source src="{% static 'cocuklar.mp4' %}" type="video/mp4">
+</video>
+{% endcomment %}
+
+
+
+
+
