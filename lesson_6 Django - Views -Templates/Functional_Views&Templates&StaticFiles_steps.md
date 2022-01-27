@@ -408,14 +408,14 @@ Examples:
 
 Templates are an integral part of the Django MVT architecture. They generally comprise HTML, CSS, and js in which dynamic variables and information are embedded with the help of views. Some constructs are recognized and interpreted by the template engine. The main ones are variables and tags.
 
-Templates, Django MVT mimarisinin ayrılmaz bir parçasıdır. Genellikle dinamik değişkenlerin ve bilgilerin views ler yardımıyla gömülü olduğu HTML, CSS ve js'yi içerirler. Bazı yapılar, templates engine tarafından tanınır ve yorumlanır. Başlıcaları variables, değişkenler ve tags, etiketlerdir.
+(Templates, Django MVT mimarisinin ayrılmaz bir parçasıdır. Genellikle dinamik değişkenlerin ve bilgilerin views ler yardımıyla gömülü olduğu HTML, CSS ve js'yi içerirler. Bazı yapılar, templates engine tarafından tanınır ve yorumlanır. Başlıcaları variables, değişkenler ve tags, etiketlerdir.)
 
 A template is rendered with a context. Rendering just replaces variables with their values, present in the context, and processes tags. Everything else remains as it is.
 
-Bir template, bir bağlamla işlenir. Oluşturma, değişkenleri yalnızca bağlam içinde bulunan değerleriyle değiştirir ve etiketleri işler. Diğer her şey olduğu gibi kalır.
+(Bir template, bir bağlamla işlenir. Oluşturma, değişkenleri yalnızca bağlam içinde bulunan değerleriyle değiştirir ve etiketleri işler. Diğer her şey olduğu gibi kalır.)
 
 The syntax of the Django template language includes the following four constructs :
-Django template language sözdizimi aşağıdaki dört yapıyı içerir:
+(Django template language sözdizimi aşağıdaki dört yapıyı içerir:)
 - Variables
 - Tags
 - Filters
@@ -445,25 +445,25 @@ STATICFILES_DIRS = [
 
 Websites generally need to serve additional files such as images, JavaScript, or CSS. In Django, we refer to these files as “static files”. Clients download static files as they are from the server.
 
-Web sitelerinin genellikle resimler, JavaScript veya CSS gibi ek dosyalar sunması gerekir. Django'da bu dosyalara "statik dosyalar" diyoruz. İstemciler, statik dosyaları sunucudan oldukları gibi indirirler.
+(Web sitelerinin genellikle resimler, JavaScript veya CSS gibi ek dosyalar sunması gerekir. Django'da bu dosyalara "statik dosyalar" diyoruz. İstemciler, statik dosyaları sunucudan oldukları gibi indirirler.)
 
 
 Django provides ```django.contrib.staticfiles``` to help you manage them, this collects static files from each of your applications (and any other places you specify) into a single location that can easily be served in production.
 
-Django, onları yönetmenize yardımcı olmak için "django.contrib.staticfiles" sağlar; bu, uygulamalarınızın her birinden (ve belirttiğiniz diğer yerlerden) statik dosyaları üretimde kolayca sunulabilecek tek bir konumda toplar.
+(Django, onları yönetmenize yardımcı olmak için "django.contrib.staticfiles" sağlar; bu, uygulamalarınızın her birinden (ve belirttiğiniz diğer yerlerden) statik dosyaları üretimde kolayca sunulabilecek tek bir konumda toplar.)
 
 
 Using the ```collectstatic``` command, Django looks for all static files in your apps and collects them wherever you told it to, i.e. the ```STATIC_ROOT``` .
 
-Django, "collectstatic" komutunu kullanarak, uygulamalarınızdaki tüm statik dosyaları arar ve siz istediğiniz yerde, yani "STATIC_ROOT" olarak toplar.
+(Django, "collectstatic" komutunu kullanarak, uygulamalarınızdaki tüm statik dosyaları arar ve siz istediğiniz yerde, yani "STATIC_ROOT" olarak toplar.)
 
 
 - Create a folder named ```static```. 
-  "static" isimli bir klasör oluştur. 
+  ("static" isimli bir klasör oluştur.)
 - Need to tell Django that this is the folder to look when a static folder is used.
-  Statik bir klasör kullanıldığında bakılacak klasörün bu olduğunu Django'ya söylemeniz gerekiyor.
+  (Statik bir klasör kullanıldığında bakılacak klasörün bu olduğunu Django'ya söylemeniz gerekiyor.)
 - Open settings.py, under STATIC_URL variable add;
-  STATIC_URL değişkeni eklentisi altında settings.py'yi açın;
+  (STATIC_URL değişkeni eklentisi altında settings.py'yi açın;)
 
 ```py
 STATICFILES_LIST = [ BASE_DIR / 'static', ]
