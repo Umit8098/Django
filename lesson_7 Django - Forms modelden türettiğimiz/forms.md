@@ -371,27 +371,15 @@ url e enter yapınca veya student sayfasına git diyince requestimiz GET olarak 
 
 
 
-
-ŞURAYA ATLA
-
-**********************************************************************************************
-**********************************************************************************************
-
-
-
-
-
-
-
-
 Django bize iki tane opsiyon sunuyor ya sen herşeyi sıfırdan yazarsın ki biz şu ana kadar öyle yaptık, ya da bir modeli aracı olarak kulanırsın ben sana yardımcı olurum. Mesela bizim <models.py> ımız var, first_name, last_name, numbers ı tanımlamışız modelimizde. <forms.py> da birdaha tanımlamışız. django diyorki bu işi iki defa tekrar etme onun yerine ModelForm kullan. aşağıdaki code ları alıp <forms.py> dosyasına ekliyoruz, öncekileri comment yapıyoruz. Artık diyoruz ki daha önce StudentForm umuzu forms.Form dan türetmiştik, şimdi forms.ModelForm dan türetiyoruz. 
 
 - go to student/forms.py and amend StudentForm and use forms.ModelForm class
 
 ```python
+from django import forms
 from .models import Student
 class StudentForm(forms.ModelForm):
-    class Meta:
+    class Meta: 
         model = Student
         fields = ["first_name", "last_name", "number", "profile_pic"]
         # fields = "__all__"
@@ -453,9 +441,39 @@ def student_page(request):
     }
     return render(request, 'student/student.html', context)
 ```
-*********************************************************************************
-*********************************************************************************
-BURAYA ATLA
+
+
+explain POST, and how to save student
+
+- go to terminal
+
+(Terminale git, superuser oluştur ->)
+
+```bash
+py manage.py createsuperuser
+```
+
+navigate to admin panel and show that student model does not exist
+
+- go to student/admin.py
+
+(admin dashboard a Student modelimizi ekleyelim.)
+
+```python
+from django.contrib import admin
+
+from .models import Student
+# Register your models here.
+admin.site.register(Student)
+```
+
+
+**********************************************************************************************
+ŞURAYA ATLA
+**********************************************************************************************
+
+
+
 
 
 ##### Formdan gelen veriyi db ya işlemek (formumuzu modelden türetmediğimiz zaman kullanılacak kod) ->
@@ -528,6 +546,10 @@ from .models import Student
 admin.site.register(Student)
 ```
 
+
+*********************************************************************************
+BURAYA ATLA
+*********************************************************************************
 
 
 ### BOOTSTRAP

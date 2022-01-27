@@ -371,15 +371,9 @@ url e enter yapınca veya student sayfasına git diyince requestimiz GET olarak 
 
 
 
-
+**********************************************************************************************
 ŞURAYA ATLA
-
 **********************************************************************************************
-**********************************************************************************************
-
-
-
-
 
 
 
@@ -389,6 +383,7 @@ Django bize iki tane opsiyon sunuyor ya sen herşeyi sıfırdan yazarsın ki biz
 - go to student/forms.py and amend StudentForm and use forms.ModelForm class
 
 ```python
+from django import forms
 from .models import Student
 class StudentForm(forms.ModelForm):
     class Meta:
@@ -453,9 +448,11 @@ def student_page(request):
     }
     return render(request, 'student/student.html', context)
 ```
-*********************************************************************************
+
+
 *********************************************************************************
 BURAYA ATLA
+*********************************************************************************
 
 
 ##### Formdan gelen veriyi db ya işlemek (formumuzu modelden türetmediğimiz zaman kullanılacak kod) ->

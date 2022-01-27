@@ -228,12 +228,13 @@ Her seferinde bir html template i yazmaktansa bir tane şablon base.html oluştu
 {% endblock container %}
 ```
 
-(templates' in altındaki student' ın altına <student.html> oluştur. "{% extends "student/base.html" %} {% block container %}" ve  "{% endblock container %}" code' larına dikkat et. (Burda bir form tanımlı.) )
+(templates' in altındaki student' ın altına <student.html> oluştur. "{% extends "student/base.html" %} {% block container %}" ve  "{% endblock container %}" code' larına dikkat et. (Burada bir form tanımlı.) )
 
 - student.html
 
 ```html
 {% extends "student/base.html" %} {% block container %}
+<h2>Student Form</h2>
 <form action="">
   <label for="">student name</label>
   <input type="text" />
@@ -299,7 +300,7 @@ urlpatterns = [
 
 - then -> (sonra ->)
 
-(Django bize ne diyordu formu ya sen kendin sıfırdan yap, yada bana bırak ben sana bir modeli aracı olarak kulanarak yardımcı olayım. Şuana kadar formu biz kendimiz yaptık. Nerede yapmıştık <student.html> içerisinde yapmıştık. Şimdi django formlarda oluşturacağız. Bunun için student app inin içerisine <forms.py> diye bir dosya oluşturuyoruz. Bunun içerisine de aşağıdaki bazıları bilindik code ları yazıyoruz. django dan forms ları import ediyoruz<from django import forms> , <!-- <models.py> dan "Student" modelimizi import ediyoruz. --> "StudentForm" class ı oluşturuyoruz. )
+(Django bize ne diyordu formu ya sen kendin sıfırdan yap, yada bana bırak ben sana bir modeli aracı olarak kulanarak yardımcı olayım. Şuana kadar formu biz kendimiz yaptık. Nerede yapmıştık <student.html> içerisinde bir form oluşturduk. Şimdi django formlarda oluşturacağız. Bunun için student app inin içerisine <forms.py> diye bir dosya oluşturuyoruz. Bunun içerisine de aşağıdaki bazıları bilindik code ları yazıyoruz. django dan forms ları import ediyoruz <from django import forms> , <!-- <models.py> dan "Student" modelimizi import ediyoruz. --> "StudentForm" class ı oluşturuyoruz. )
 
 - run server and explain urls and form.html
 
@@ -315,7 +316,7 @@ class StudentForm(forms.Form):
 ```
 
 
-(view.py a gidip <forms.py> dan StudentForm u import ediyoruz <from .forms import StudentForm> , student_page view ini aşağıdaki code ile değiştiriyoruz , student_page view ini yeniliyoruz; bir context oluşturuyoruz; <forms.py> içerisinde tanımlamış olduğumuz StudentForm class ını <views.py> da import edip, student_page view inde "form" isminde bir instance oluşturduk. Bu yeni oluşturduğumuz boş instance ı , boş elemanı, boş formu context içerisinde <student.html> template ine gönderdik.  )
+(views.py a gidip <forms.py> dan StudentForm u import ediyoruz <from .forms import StudentForm> , student_page view ini aşağıdaki code ile değiştiriyoruz , student_page view ini yeniliyoruz; bir context oluşturuyoruz; <forms.py> içerisinde tanımlamış olduğumuz StudentForm class ını <views.py> da import edip, student_page view inde "form" isminde bir instance oluşturduk. Bu yeni oluşturduğumuz boş instance ı , boş elemanı, boş formu context içerisinde <student.html> template ine gönderdik.  )
 
 - go to student/views.py and amend student_page
 
@@ -342,15 +343,16 @@ def student_page(request):
 ```html
 {% extends "student/base.html" %} {% block container %}
 
-<h2>Student Form</h2>
-
 {% comment %}
+<h2>Student Form</h2>
 <form action="">
   <label for="">student name</label>
   <input type="text" />
   <input type="submit" value="OK" />
 </form>
 {% endcomment %}
+
+<h2>Student Form</h2>
 
 <form action="" method="post" enctype="multipart/form-data">
   {% csrf_token %} {{ form.as_p }}
@@ -365,12 +367,20 @@ def student_page(request):
 (get, post, enctype ve csrf_token ' ı açıkla)
 
 
+url e enter yapınca veya student sayfasına git diyince requestimiz GET olarak student/views.py'a gidiyor. Ancak arayüzde formun içini doldurup OK butonuna bastığımızda requestimiz <student/views.py> 'a post olarak gidecek. Ama biz burda GET POST ayrımı yapmıyorduk. Şimdi o işlemleri yapacağız.
 
-(url e enter yapınca veya student sayfasına git diyince requestimiz GET olarak student/views.py'a gidiyor. Ancak arayüzde formun içini doldurup OK butonuna bastığımızda requestimiz student/views.py'a post olarak gidecek. Ama biz burda GET POST ayrımı yapmıyorduk. Şimdi o işlemleri yapacağız. Django bize iki tane opsiyon sunuyor ya sen herşeyi sıfırdan yazarsın ki biz şu ana kadar öyle yaptık, ya da bir modeli aracı olarak kulanırsın ben sana yardımcı olurum. Mesela bizim <models.py> ımız var, first_name, last_name, numbers ı tanımlamışız modelimizde. <forms.py> da birdaha tanımlamışız. django diyorki bu işi iki defa tekrar etme onun yerine ModelForm kullan. aşağıdaki code ları alıp <forms.py> dosyasına ekliyoruz, öncekileri comment yapıyoruz. Artık diyoruz ki daha önce StudentForm umuzu forms.Form dan türetmiştik, şimdi forms.ModelForm dan türetiyoruz. )
+
+**********************************************************************************************
+ŞURAYA ATLA
+**********************************************************************************************
+
+
+Django bize iki tane opsiyon sunuyor ya sen herşeyi sıfırdan yazarsın ki biz şu ana kadar öyle yaptık, ya da bir modeli aracı olarak kulanırsın ben sana yardımcı olurum. Mesela bizim <models.py> ımız var, first_name, last_name, numbers ı tanımlamışız modelimizde. <forms.py> da birdaha tanımlamışız. django diyorki bu işi iki defa tekrar etme onun yerine ModelForm kullan. aşağıdaki code ları alıp <forms.py> dosyasına ekliyoruz, öncekileri comment yapıyoruz. Artık diyoruz ki daha önce StudentForm umuzu forms.Form dan türetmiştik, şimdi forms.ModelForm dan türetiyoruz. 
 
 - go to student/forms.py and amend StudentForm and use forms.ModelForm class
 
 ```python
+from django import forms
 from .models import Student
 class StudentForm(forms.ModelForm):
     class Meta:
@@ -384,7 +394,9 @@ class StudentForm(forms.ModelForm):
 (diyoruz ki class Meta, model olarak student/models.py daki Student modelini kullan, Bu modelin içinden hangi fieldları kullanacaksak onları yazıyoruz, ya da fields = "__all__" ile hepsini kullanabiliyoruz. Hatta <<labels = {"first_name": "Name"}>> ile <<first_name>> i <<Name>> olarak kullan da diyebiliyoruz. save ettikten sonra artık biz form tanımlamadığımız halde modelimizi kullanarak bir form oluşturduk. Yani modelimiz bu kardeşim sen bize bu modelden bir form oluştur dedik sağolsun oluşturdu bize. Oldukça pratik bir yöntem baştan form dizayn etmiyoruz, fieldları söylüyoruz,)
 
 
-##### Formdan gelen veriyi db ya işlemek (formumuzu modelden türettiğimiz zaman kullanılacak kod)->
+##### Formdan gelen veriyi db e işlemek (formumuzu modelden türettiğimiz zaman kullanılacak kod)->
+
+url e enter yapınca veya student sayfasına git diyince requestimiz GET olarak student/views.py'a gidiyor. Ancak arayüzde formun içini doldurup OK butonuna bastığımızda requestimiz <student/views.py> 'a post olarak gidecek. Ama biz burda GET POST ayrımı yapmıyorduk. Şimdi o işlemleri yapacağız.
 
 Artık gelen verileri db ye yazmak için gerekli işlemleri yapıyoruz. Gelen veri önce <student.view.py> geliyor ya formdan gelen veriler POST olarak geliyor bize ve bizim be POST işlemini handle etmemiz lazım;
 if condition method ile; eğer request method POST ise
@@ -412,6 +424,14 @@ form = StudentForm() kısmını if in hemen üzerine alıyoruz ki GET işlemini 
 
 (form.save() yöntemi -> : Biz formu ModelForm dan türettik, modelden türettiğimiz için bu şekilde save yapabiliyoruz. )
 
+navigate to admin panel and show student model there and display recorded students
+(yönetici paneline gidin ve orada öğrenci modelini gösterin ve kayıtlı öğrencileri görüntüleyin)
+
+- go to student/views.py and amend student_page
+
+(Student/views.py'ye gidin ve Student_page'i değiştirin)
+
+
 ```python
 def student_page(request):
     form = StudentForm()
@@ -427,9 +447,30 @@ def student_page(request):
 ```
 
 
+
+*********************************************************************************
+BURAYA ATLA
+*********************************************************************************
+
+
 ##### Formdan gelen veriyi db ya işlemek (formumuzu modelden türetmediğimiz zaman kullanılacak kod) ->
 
+<student.views.py> dosyasına gidip <student_page> view inde aşağıdaki değişiklileri yapmalıyız.
+
+<student.models.py> dan <Student> modelimizi de import etmemiz lazım.
+
+```
+from .models import Student
+```
+
 (Alternatif save yöntemi -> : formumuzu modelden türetmediğimiz zaman kendimiz oluşturduğumuzda bu şekilde save edebiliriz. )
+
+Form save işlemleri başarılı bir şekilde gerçekleşti, bizim artık bunu tekrar gets pozisyonuna sokmamız lazım. Bunun için <return.redirect('student')> yapmamız lazım (redirect i import etmemiz de lazım) çünkü POST tan kurtarıp GET e sokmamız lazım.
+
+```python
+from django.shortcuts import render, redirect
+```
+
 
 ```python
 def student_page(request):
@@ -439,7 +480,7 @@ def student_page(request):
             student_data = {
                 "first_name": form.cleaned_data.get('first_name'),
                 "last_name": form.cleaned_data.get('last_name'),
-                "number": form.cleaned_data.get('number')
+                "number": form.cleaned_data.get('number'),
                 # "profile_pic": form.cleaned_data.get('profile_pic'),
             }
             # database save process
@@ -459,7 +500,6 @@ def student_page(request):
 
 
 explain POST, and how to save student
-
 
 - go to terminal
 
@@ -484,34 +524,14 @@ admin.site.register(Student)
 ```
 
 
-navigate to admin panel and show student model there and display recorded students
-
-- go to student/views.py and amend student_page
-
-```python
-def student_form(request):
-    form = StudentForm()
-    if request.method == 'POST':
-        form = StudentForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('/student/')
-
-    context = {
-        'form': form
-    }
-    return render(request, 'student/student.html', context)
-```
-
-explain form.save and request FILES
-
-
-
 
 ### BOOTSTRAP
 
 go to student/templates/student/base.html and add bootstrap
 (base.html e gidip bootstrap eklemek ->)
+
+Bootstrap sitesinden aldığımız Bootstrap css linkini ve body nin bitiminden hemen önce de JavaScript src kodlarını ekliyoruz. ekliyoruz
+
 
 ```html
 <!DOCTYPE html>
@@ -548,6 +568,7 @@ go to student/templates/student/base.html and add bootstrap
 ```
 .
 .
+- uygulandığını görüyoruz. (index.html yani '' sayfasında ve student.html yani '/student/' sayfasında)
 
 
 ### CRISPY FORMS
@@ -569,6 +590,7 @@ pip freeze > requirements.txt
 ```python
 INSTALLED_APPS = (
     ...
+    # 3rd party packages
     'crispy_forms',
 )
 
@@ -581,7 +603,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'  (settings' in en sonuna)
 <student.html> gidip form tagından önce bu kodu -> 
 {% load crispy_forms_tags %} 
 
-arkasından  daha önce form.as_p diye kullandığımız kısmı silip ya da yoruma alıp ->
+arkasından  daha önce form.as_p diye kullandığımız kısmı silip ya da yoruma alıp  {# ..yorum..  #} ->
 {{ form | crispy}} 
 yapıyoruz,
 
@@ -626,7 +648,7 @@ Formumuzu aşağıda olduğu gibi div içine alıp <style="margin-left: 20px; wi
 
 - go to student/views.py and import messages end send success message
 
-(<student/views.py> a gidiyoruz, önce messages' ı import ediyoruz <from django.contrib import messages>. Sonra success mesajı gönderiyoruz, ilgili yere yani save komutunun heman altına <messages.success(request, 'Student added successfully')> yazıyoruz. Bunu nereye gönderiyoruz templates e (base.html) gönderiyoruz arka planda ve templates de işlem yapmamız gerekiyor.)
+(<student/views.py> a gidiyoruz, önce messages' ı import ediyoruz <from django.contrib import messages>. Sonra success mesajı gönderiyoruz, ilgili yere yani save komutunun hemen altına <messages.success(request, 'Student added successfully')> yazıyoruz. Bunu nereye gönderiyoruz templates e (base.html) gönderiyoruz arka planda ve templates de işlem yapmamız gerekiyor.)
 
 ```python
 from django.contrib import messages
