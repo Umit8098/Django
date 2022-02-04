@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form action="" method="post">
+
+    {% csrf_token %} {{form}}
+    <input type="submit" value="Add">
+
+</form>
+
+
+<div>
+    <ul style="border: 1px solid red; width: 20%;">
+        <h2>Todo List</h2>
+
+{% for todo in todos %}
+
+    {% if todo.completed %}
+        <a href="{% url 'update' todo.id %}"> <li style="border: 1px solid aqua; margin-bottom: 15px;"> <del>{{todo}}</del> </li> </a>
+    {% else %}
+        <a href="{% url 'update' todo.id %}"> <li style="border: 1px solid aqua; margin-bottom: 15px;">{{todo}}</li> </a> 
+    {% endif %}
+        
+{% endfor %}
+
+    </ul>
+</div>
+
+{% endblock content %}
