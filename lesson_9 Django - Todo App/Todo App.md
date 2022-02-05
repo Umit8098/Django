@@ -1407,7 +1407,135 @@ p {
     padding-bottom: 5px;
     
 }
+
+
+#welcome{
+    padding-bottom: 0.5rem;
+}
 ```
 
 ### CRISPY FORMS
 
+(djangoya has templatelerimizi güzelleştiren bir yapı, application. Burada formları düzenleme için kullanılıyoruz. Bu paketi yüklüyoruz.)
+
+- go to terminal
+(terminale gidip, çalışan terminali durdurup crispy app ini yüklüyoruz.)
+
+```bash
+pip install django-crispy-forms
+pip freeze > requirements.txt
+```
+
+- go to settings.py
+
+(yeni bir app kurunca yaptığımızı tekrar ediyoruz, settings e gidip app imizi ekliyoruz, ayrıca settings in sonuna da şu kodu eklememiz gerekiyor. )
+
+```python
+INSTALLED_APPS = (
+    ...
+    # 3rd party packages
+    'crispy_forms',
+)
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'  (settings' in en sonuna)
+```
+
+
+- go to todo/templates/todo/todo_list.html and crispy tags
+
+<todo_list.html> gidip form tagından önce bu kodu -> 
+{% load crispy_forms_tags %} 
+
+arkasından  daha önce {{form}} diye kullandığımız kısmı silip ya da yoruma alıp  {# ..yorum..  #} ->
+{{ form | crispy}} 
+yapıyoruz,
+
+
+```python
+{% load crispy_forms_tags %}
+{{ form | crispy}}
+```
+
+<todo_list.html> en son hali ->
+
+```python
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="add">
+    {% load crispy_forms_tags %}
+<form action="" method="post">
+
+    {% csrf_token %} <!-- {{form}} -->{{ form | crispy}}
+    <input type="submit" value="Add">
+
+</form>
+</div>
+
+<div id="list">
+
+    <ul id="ul">
+    <h2 id="todo-list">Todo List</h2>
+
+{% for todo in todos %}
+
+    {% if todo.completed %}
+        <a href="{% url 'update' todo.id %}"> <li> <del>{{todo}}</del> </li> </a>
+    {% else %}
+        <a href="{% url 'update' todo.id %}"> <li>{{todo}}</li> </a> 
+    {% endif %}
+        
+{% endfor %}
+
+    </ul>
+</div>
+
+{% endblock content %}
+
+```
+
+
+
+and go to <todo_update.html>   ->
+
+```python
+{% extends 'base.html' %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<form action="" method="post">
+    {% csrf_token %}
+    <!-- {{form}} -->{{ form | crispy}}
+    <input type="submit" value="Update">
+
+</form>
+
+
+<a href="{% url 'delete' todo.id %}"><button style="margin: 10px">Delete</button></a>
+
+<a href="{% url 'list' %}"><button style="margin: 10px">List</button></a>
+
+{% endblock content %}
+    
+```
+
+
+
+
+and go to <todo_add.html>  gerçi artık todo_add.html template ini kullanmıyoruz, onu list sayfasına taşıdık ama olsun :) ->
+
+```python
+{% extends 'base.html' %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+<form action="" method="post">
+
+    {% csrf_token %} <!-- {{form}} -->{{ form | crispy}}
+    <input type="submit" value="Add">
+
+</form>
+
+{% endblock content %}
+
+```

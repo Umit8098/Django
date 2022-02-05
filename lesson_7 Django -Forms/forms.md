@@ -608,9 +608,9 @@ arkasından  daha önce form.as_p diye kullandığımız kısmı silip ya da yor
 yapıyoruz,
 
 
-```django
-({% load crispy_forms_tags %}
-{{ form | crispy}})
+```python
+{% load crispy_forms_tags %}
+{{ form | crispy}}
 ```
 
 
