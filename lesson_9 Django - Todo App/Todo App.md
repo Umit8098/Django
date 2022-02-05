@@ -1221,6 +1221,33 @@ En son <todo_list.html> ve <todo_update.html> template lerinde inline style ile 
 
 
 
-### PostgreSQL bağlama
+### PostgreSQL bağlama 
 
-database ayarını settings den yapıyorduk. Default olarak sqlite3 geliyor.
+database ayarını settings den yapıyorduk. Default olarak sqlite3 geliyor. Ancak aşağıdaki kodlarla değiştiriyoruz.
+
+```python
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres', #db propertiesden
+        'USER': 'postgres', #db propertiesden
+        'PASSWORD': 'password', # postgresql password
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
+```
+
+
+go to terminal
+```bash
+$ pip install psycopg2
+$ py manage.py migrate
+```
+
+<settigs.py> da değişiklik yaptığımızda aşağıdaki komutu çağırmalıyız.
+```bash
+$ py manage.py migrate
+```
