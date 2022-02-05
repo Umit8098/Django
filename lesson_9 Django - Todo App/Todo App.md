@@ -1251,3 +1251,163 @@ $ py manage.py migrate
 ```bash
 $ py manage.py migrate
 ```
+
+
+
+
+### static files ->
+
+- css dosyası tanımlamak -> 
+Bizim <base.html> template imiz proje kalsörü ile aynı seviyede bulunan templates klasöründe olduğu için biz de static klasörü ve içinde css klasörünü proje klasörümüz ile aynı seviyede oluşturduk. İçinde css dosyamız oluşturduk. Bunları kullanabilmek için de şablon template imiz olan base.html sayfasının en başına html tag ının da üzerine {% load static %} yazıyoruz. Ayrıca css için link verirken href attribute üne {% static 'css/style.css' %} kodunu yazıyoruz, dikkat! 
+
+Ayrıca biz static klasörümüzü app imizin içinde değil de proje klasörü ile aynı sevide oluşturduğumuz  <settings.py> dosyasında <STATIC_URL = 'static/' > kısmının altına şu kodları ilave ediyoruz. ->
+```python
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    '/var/www/static/',
+]
+```
+
+Böylece; ->
+
+<settings.py> dosyamızın static ile ilgili kısmı ; ->
+
+```python
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    '/var/www/static/',
+]
+```
+NOT: settings.py da değişiklik yapıldığı için 
+```python
+py manage.py migrate
+```
+gerekebilir.
+
+
+
+<base.html> dosyamızın static ve css eklenmiş hali ->
+
+```html
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <!-- <link rel="stylesheet" href="../static/css/style.css" /> -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+</head>
+<body>
+    
+    {% block content %}
+        
+    {% endblock content %}
+        
+</body>
+</html>
+```
+
+Şimdi artık css lerle oynama vakti.
+
+<style.css> dosyamız ->
+
+```css
+body {
+    background-color: aquamarine;
+}
+#container {
+    margin-top: 8rem;
+    padding-top: 0.2rem;
+    border-radius: 10px;
+    /* border: 1px solid blue; */
+    width: 50%;
+    margin: 3rem auto 0 auto;
+    background-color: rgb(247, 207, 108)
+}
+
+#add{
+    /* border: 1px solid purple; */
+    border-radius: 10px;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    width: 60%;
+    background-color: rgb(202, 58, 53);
+    color: rgb(205, 243, 222);
+    font-size: 1.5rem;
+}
+
+#list{
+    /* border: 1px solid black;  */
+    border-radius: 10px;
+    padding: 0.1rem;
+    margin-top: 0.5rem;
+    background-color: rgb(177, 170, 182);
+}
+
+#ul{
+    /* border: 1px solid red; */
+    position: relative;
+    /* right: 10px; */
+    border-radius: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 60%;
+    background-color: rgb(4, 185, 116);
+    color: rgb(253, 253, 1);
+    font-size: 1.1rem;
+}
+
+#todo-list{
+    position: relative;
+    right: 1rem;
+    font-size: 2.5rem;
+    text-align: center;
+    /* border: 1px solid beige; */
+    border-radius: 10px;
+    width: 60%;
+    background-color: rgb(87, 49, 4);
+}
+
+li {
+    /* border: 1px solid aqua; */
+    position: relative;
+    right: 1rem;
+    border-radius: 10px;
+    padding-left: 0.6rem;
+    margin-bottom: 15px; width: 60%;
+    text-align: left;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    background-color: rgb(138, 5, 5);
+    color: rgb(240, 227, 227);
+    
+}
+
+a{
+    text-decoration: none;
+}
+
+h1 {
+    color: rgb(238, 20, 209);
+}
+    
+p {
+    color: rgb(252, 6, 6);
+    font-size: 1.5rem;
+}
+
+#delete {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    
+}
+```
+
+### CRISPY FORMS
+
