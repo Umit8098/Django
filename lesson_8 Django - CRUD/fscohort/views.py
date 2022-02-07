@@ -28,6 +28,7 @@ def student_add(request):
         form = StudentForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
+            return redirect('list')
     
     context = {
         'form': form
