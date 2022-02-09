@@ -100,7 +100,7 @@ click the link with CTRL key pressed in the terminal and see django rocket.
 THEN ->
 
 
-- go to terminal, stop project, add app
+- go to terminal, stop project (Ctrl + C), add app
 
 (terminale gidip durduruyoruz ve bir app <fscohort> oluşturuyoruz.)
 
@@ -144,7 +144,7 @@ THEN->
 
 - go to fscohort/models.py
 
-(fscohort app inin altındaki <models.py> dosyasına gidip "Student" isminde bir model oluşturuyoruz, daha önce görmüştük. Bu modelde ImageField da kullandığımız için proje ve app klasörleriyle aynı seviyede media klasörü oluşturup içine de student klaörü oluşturuyoruz ki yüklenen medyalar düzenli olsun. media/student kalsörlerini iç içe oluşturup upload ı buraya verdik. Bir de option daha veriyoruz, eğer resim yüklenmezse default olarak bir avatar yüklensin, avatar resmini de media kalsörünün içine koyduk. (blanc=True dersek de resim yüklemeyi mecbur tutmayız. ) )
+(fscohort app inin altındaki <models.py> dosyasına gidip "Student" isminde bir model oluşturuyoruz, daha önce görmüştük. Bu modelde ImageField da kullandığımız için proje ve app klasörleriyle aynı seviyede media klasörü oluşturup içine de student klasörü oluşturuyoruz ki yüklenen medyalar düzenli olsun. media/student kalsörlerini iç içe oluşturup upload ı buraya verdik. Bir de option daha veriyoruz, eğer resim yüklenmezse default olarak bir avatar yüklensin, avatar resmini de media kalsörünün içine koyduk. (blanc=True dersek de resim yüklemeyi mecbur tutmayız. ) )
 
 <fscohort/models.py> ->
 
@@ -181,7 +181,7 @@ class Student(models.Model):
 
 - go to terminal
 
-(Bir model oluşturduğumuz için < makemigrations > (django, oluşturduğumuz modeli db de oluşturmak için hazırlık yapıyor.) ve < migrate > (migrations ile yaptığı hazırlıkları db de işliyor.) komutlarını kullanmalıyız. Bir model oluşturduğumuz ya da modelde değişiklik yaptığımız zaman ilk yapacağımız iş bu komutları kullanmak.)
+(Bir model oluşturduğumuz için <makemigrations> (django, oluşturduğumuz modeli db de oluşturmak için hazırlık yapıyor.) ve <migrate> (migrations ile yaptığı hazırlıkları db de işliyor.) komutlarını kullanmalıyız. Bir model oluşturduğumuz ya da modelde değişiklik yaptığımız zaman ilk yapacağımız iş bu komutları kullanmak.)
 
 ```bash
 $ py manage.py makemigrations
@@ -797,29 +797,7 @@ urlpatterns = [
 ```
 
 
-home.html sayfasına list ve add sayfaları için link veriyoruz ->
-
-```html
-{% extends 'fscohort/base.html' %}
-
-{% block content %}
-
-<h2>
-    <center>
-        Welcome To Student App <br> (Backend Team)
-        <hr>
-        <br>
-        <a href="{% url 'list' %}">LIST</a>
-        <a href="{% url 'add' %}">LIST</a>
-    </center>
-</h2>
-{% endblock content %}
-
-```
-
-
-
-detail.html sayfasına list sayfası için link veriyoruz, ayrıca delete sayfasına id ile gitmesi için link veriyoruz. ->
+detail.html sayfasına delete sayfasına id ile gitmesi için link veriyoruz. ->
 
 ```html
 {% extends 'fscohort/base.html' %}
@@ -835,7 +813,6 @@ detail.html sayfasına list sayfası için link veriyoruz, ayrıca delete sayfas
 <div>{{student.phone}}</div>
 <div>{{student.gender}}</div>
 <div>
-    <a href="{% url 'list' %}">Edit</a>
     <a href="{% url 'update' student.id %}">Edit</a>
     <a href="{% url 'delete' student.id %}">Delete</a>
 </div>
@@ -843,3 +820,56 @@ detail.html sayfasına list sayfası için link veriyoruz, ayrıca delete sayfas
 {% endblock content %}
 
 ```
+
+
+
+
+detail.html sayfasına list sayfası için link veriyoruz ->
+
+```html
+{% extends 'fscohort/base.html' %}
+
+{% block content %}
+
+<h2>Student Detail</h2>
+<div><img src="{{student.image.url}}" alt=""></div>
+<div>{{student.first_name}}</div>
+<div>{{student.last_name}}</div>
+<div>{{student.number}}</div>
+<div>{{student.email}}</div>
+<div>{{student.phone}}</div>
+<div>{{student.gender}}</div>
+<div>
+    <a href="{% url 'update' student.id %}">Edit</a>
+    <a href="{% url 'delete' student.id %}">Delete</a>
+    <a href="{% url 'list' %}">List</a>
+</div>
+
+{% endblock content %}
+
+```
+
+
+
+
+home.html sayfasına list ve add sayfaları için link veriyoruz ->
+
+```html
+{% extends 'fscohort/base.html' %}
+
+{% block content %}
+
+<h2>
+    <center>
+        Welcome To Student App <br> (Backend Team)
+        <hr>
+        <br>
+        <a href="{% url 'list' %}">LIST</a>
+        <a href="{% url 'add' %}">Add</a>
+    </center>
+</h2>
+{% endblock content %}
+
+```
+
+
