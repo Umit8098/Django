@@ -15,7 +15,8 @@ class Student(models.Model):
     }
     gender = models.CharField(max_length=50, choices=GENDER)
     """ gender için dropdown menü yapıyoruz. """
-    number = models.CharField(max_length=50)
+    # number = models.CharField(max_length=50)
+    number = models.IntegerField(unique=True, blank=True, null=True)
     image = models.ImageField(upload_to='student/', default='avatar.png')
     
     def __str__(self):
