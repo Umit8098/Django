@@ -1,3 +1,5 @@
+En Baştan -> 
+
 ### CRUD Normal Views
 Create, Read, Update, Delete
 
@@ -1475,8 +1477,8 @@ urlpatterns = [
     path('student_list/', StudentListView.as_view(), name='list'),
     path('student_add/', student_add, name='add'),
     # path('detail/<int:id>/', student_detail, name='detail'),
-    path('detail/<int:id>/', StudentDetailView.as_view(), name='detail'),
     # path('detail/<int:pk>/', StudentDetailView.as_view(), name='detail'),
+    path('detail/<int:id>/', StudentDetailView.as_view(), name='detail'),
     path('update/<int:id>/', student_update, name='update'),
     path('delete/<int:id>/', student_delete, name='delete'),
 ] 
@@ -1485,7 +1487,7 @@ urlpatterns = [
 
 
 
-##### <CreateView> 
+##### <CreateView (add)> 
 (Editing views lerimizden)
 
 <views.py> da CreateView i import ediyoruz, redirect için ise önce django.urls den reverse_lazy i import ediyoruz, sonra aşağıya ise success_url = reverse_lazy('list') yazıyoruz.  
@@ -1913,6 +1915,7 @@ urlpatterns = [
 
 
 ### <List.html> de sonraki sayfaya geçme template pagination in django
+(Yukarıda yaptık o işi!)
 
 List template i içinde sonraki sayfaya geçeme için yazılan kodlar. 
 
@@ -2056,48 +2059,11 @@ Artık db yi değiştirdik. Bizim listemiz artık boş, çünkü liste öteki db
 
 
 
+
 ### Custom Validation
 
-<forms.py> a gidiyoruz. 
+<forms.py> a gidiyoruz. Biz bu öğrenci numaralarına belirli bir limit koymak istiyoruz; 1000 ile 10000 arasında olsun gibi. Bunu için custom validation yazmamız lazım. Bu formlarda yapılan bir işlem. views.py da form.is_valid dediğimiz zaman formlarda yazdıklarımızı karşılıyor mu karşılamıyor mu ona bakıyor. Biz custom bir validation yazabiliriz; diyebiliriz ki student in numarası 1000-10000 arasında olsun. Onu nerede yapabiliriz? form.is_valid dediğimiz için <forms.py> da yapıyoruz.
 
-Modelimizde number = ... IntegerField ımız vardı. (Aslında yok o yüzden önce modelimizdeki number field ını integer a çaviriyoruz.)
-
-<models.py> ->
-
-```python
-
-from django.db import models
-
-# Create your models here.
-
-class Student(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email = models.EmailField(max_length=254)
-    phone = models.CharField(max_length=50)
-    GENDER = {
-        ('1', 'Female'),
-        ('2', 'Male'),
-        ('3', 'Other'),
-        ('4', 'Prefer Not Say'),
-    }
-    gender = models.CharField(max_length=50, choices=GENDER)
-    """ gender için dropdown menü yapıyoruz. """
-    # number = models.CharField(max_length=50)
-    number = models.IntegerField(unique=True, blank=True, null=True)
-    image = models.ImageField(upload_to='student/', default='avatar.png')
-    
-    def __str__(self):
-        return f'{self.number} - {self.first_name}'
-    
-    class Meta:
-        ordering = ['-id']
-
-```
-
-
-
- Ve biz bu öğrenci numaralarına belirli bir limit koymak istiyoruz; 1000 ile 10000 arasında olsun gibi. Bunu için custom validation yazmamız lazım. Bu formlarda yapılan bir işlem. views.py da form.is_valid dediğimiz zaman formlarda yazdıklarımızı karşılıyor mu karşılamıyor mu ona bakıyor. Biz custom bir validation yazabiliriz; diyebiliriz ki student in numarası 1000-10000 arasında olsun. Onu nerede yapabiliriz? form.is_valid dediğimiz için <forms.py> da yapıyoruz. 
 Şöyle; StudentForm class ımın içinde, fonksiyonumuz clean ile başlıyor <def clean_number():> sonra hangi attribute u kontrol yapacaksam onu yazıyoruz. ->
 
 <forms.py> ->
@@ -2120,12 +2086,9 @@ class StudentForm(forms.ModelForm):
         model = Student
         fields = '__all__'
 
-
 ```
 Bir formun içerisinden specific bir veriyi çekerken <self.cleaned_data['number']> şeklinde kullanmamız lazım. cleaned_data içerisinden number ı aldık.
 if not(1000 < number < 10000): ise hata ver diycez onun için bir kütüphane import etmemiz lazım -> <from django.core.exceptions import ValidationError> hatayı bununla vereceğiz, ValidationError hatası göndereceğiz.
-
-
 
 
 
@@ -2293,6 +2256,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-
 
 ```
