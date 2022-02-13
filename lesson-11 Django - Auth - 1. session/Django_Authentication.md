@@ -175,7 +175,7 @@ python manage.py startapp home
 
 - Go to settings.py and add the app to the INSTALLED_APPS:
 ```py
-'user_example'   # bu yeterli veya aşağıdaki gibi de eski tarz da yazılabilir. 
+'user_example'
 'user_example.apps.UserExampleConfig'
 ```
 
@@ -558,7 +558,7 @@ def password_change(request):
 
 - Add registration/password_change.html
 ```html
-<h1>Password Change page</h1>
+<h1>Password cchange</h1>
 
 <form method="post">
 

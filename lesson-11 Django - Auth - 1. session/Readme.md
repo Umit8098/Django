@@ -118,13 +118,24 @@ py manage.py runserver
 ```
 
 
-### The Django Authentication Models
 
 go to admin page
 
 Yeni bir grup oluşturacağız. Groups un yanındaki +add e tıklayıp grup ismi verip yetkilendirmesini yapabiliyoruz. Clarusway diye bir grup oluşturduk. auth | group |Can add group permission yetkilendirmesini yaptık.
 
 Şimdi bir de user oluşturuyoruz. Halihazırda admin olarak girdiğimiz bir user var. User oluşturduk.
+
+
+### The Django Authentication Models
+
+Django.contrib.auth.models has 
+- User, 
+- Permission,
+- Group Models,
+
+Below you can see the class diagrams for User as well as Permission and Group.
+
+![](DjangoAuthModels.png)
 
 
 
@@ -137,7 +148,7 @@ go to terminal
 serverı durduruyoruz.
 
 
-- powershel nasıl kısaltılır?
+- powershell deki dosya yolumuz nasıl kısaltılır?
 
 google: shorten powershell prompt
 https://stackoverflow.com/questions/42862604/powershell-shortened-the-directory-prompt-but-how-to-save-the-change
@@ -148,7 +159,9 @@ function prompt {'Code: '}
 artık terminalde sadece Code: yazacak
 
 
-Başlamadan önce dokümantasyona gidelim, bakalım ne diyopr?
+
+
+Başlamadan önce dokümantasyona gidelim, bakalım ne diyor?
 
 https://docs.djangoproject.com/en/3.2/topics/auth/default/
 
@@ -174,6 +187,8 @@ create user için  create_user() helper function u var, bu fonksiyon sayesinde u
 go to terminal
 ```bash
 python manage.py shell
+or
+py manage.py shell
 ```
 
 shell imiz geldi, shell imize yazıyoruz artık ->
@@ -238,6 +253,24 @@ user.is_staff = True
 user.save()
 ```
 
+- Bir user ın first_name, last_name ini değiştirme: ->
+
+önce user ı bir değişkene atıyoruz,
+```py
+>>> user1 = User.objects.get(username='john') 
+>>> user1
+```
+
+dönüşü:
+```py
+<User: john>
+```
+
+arkasından:
+```py
+>>> user1.first_name = 'John' 
+>>> user1.save()
+```
 
 
 
@@ -253,17 +286,24 @@ user.save()
 
 Bizim oluşturduğumuz user ın password ünü değiştiriyoruz. ->
 ```py
-user = User.objects.get(username='john')
-user.set_password('new password')
-user.save()
+>>> user = User.objects.get(username='john')
+>>> user.set_password('new password')
+>>> user.save()
 ```
-kullanıcının password ünü değiştirdik, ama username='john' yapamadık, bilmiyorum.
+
+kullanıcının password ünü değiştirdik, username ini de değiştirelim: 
+backteam olan username i John olarak değiştirdik, sonra tekrar değiştirdik. ->
+```py
+>>> user = User.objects.get(username='backteam')
+>>> user.username = 'John'
+>>> user.save()
+```
 
 
 
 
 
-- Deleting user - user silme
+- Deleting user - user silme, programatik olarak.
 
 1. yöntem
 ```bsh
@@ -296,12 +336,17 @@ sonra bu kullanıcı ile login olmaya çalışınca login olamıyor, admin page 
 
 
 
-Djangoda admin pagede ve programatic olarak kullanıcı eklemeyi gördük, ama bunu yazdığımız views lar sayesinde kullanıcının login olmasını kendi hesabını oluşturmasını sağlayacağız ki bu en temel web sitesi ayarlarından bir tanesidir.
-
 # Add users with auth
 
+Djangoda admin pagede ve programatic olarak kullanıcı eklemeyi gördük, ama bunu yazdığımız views lar sayesinde kullanıcının login olmasını kendi hesabını oluşturmasını sağlayacağız ki bu en temel web sitesi ayarlarından bir tanesidir.
+
 We want to allow adding regular users to our app.
-django.contrib.auth paketi var, bu paket default olarak login, logout, passwordchange gibi view ları içeriyor. Bunun url lerini çağırdığımızda accounts/ başında olacak
+
+path('accounts/', include('django.contrib.auth.urls'))
+
+django.contrib.auth paketi var, bu paket default olarak login, logout, passwordchange gibi view ları içeriyor. Bunun url lerini çağırdığımızda accounts/ başında olacak.
+
+Biz local hosttan :8000/accounts/ a gittiğimizde bize birçok yol veriyor, bunları django.contrib.auth kütüphanesinin kendi default url leri. mesela öncelikle login e bakalım. 8000/accounts/login/  bize bir default olarak bir login page veriyor, bu view ü biz yazmadık. Değişik değişik default olarak tanımlanmış sayfalar var.
 
 - Go to authenticate/urls.py and add:
 ```py
@@ -314,6 +359,8 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls'))
 ]
 ```
+
+Bizim oluşturmadığımız bir view var o da accounts, nereden çağırıyoruz? default olarak django.contrib.auth kütüphanesinden çağırıyoruz.
 
 home page e gidip oradan url' ye /accounts/login/ tıkladıktan sonra user1 ve password ü ile login olduk,
 
@@ -345,8 +392,8 @@ Bu değişikliği yaptık ama first_name i olmayan userlar için bize hata verir
 ```
 
 
-
-
+/*************************************************************/
+/*************************************************************/
 
 
 - Creating superusers
@@ -357,4 +404,12 @@ $ python manage.py createsuperuser --username=joe --email=joe@example.com
 ```
 
 
+/*************************************************************/
+/*************************************************************/
 
+
+
+
+login den sonra logout a bakalım; logout olduktan sonra tekrar login olmak istediğimizde bizi default olarak admin giriş sayfasına yönlendiriyor, bu düzeltilecek.
+
+settings.py da en alta yazdığımız <LOGIN_REDIRECT_URL = '/'> bizim login olunca nereye gideceğimize işaret ediyor. Burada home page e yönlendirilmiş. Biz onu değiştirdiğimizde login olunca değiştirdiğimiz page e gidecektir.
