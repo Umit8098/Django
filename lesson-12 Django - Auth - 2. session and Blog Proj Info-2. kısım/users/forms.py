@@ -5,4 +5,4 @@ class UserForm(UserCreationForm):
     class Meta():
         model = User
         # fields = ('username', 'email', 'password1', 'password2', 'portfolio', 'profile_pic', 'first_name', 'last_name')
-        fields = ('email', 'password1', 'password2', )
+        fields = ('email', 'password1', 'password2')

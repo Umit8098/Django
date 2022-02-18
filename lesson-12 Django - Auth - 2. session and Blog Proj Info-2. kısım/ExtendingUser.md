@@ -35,7 +35,7 @@ django-admin startproject main .
 ////////////////////////////////////////////////////////
 Biz projeyi cloneladığımız için bunları yaptık.
 
-```python
+```bash
 pip install -r requirements.txt
 py -m pip install --upgrade pip
 .gitignore
@@ -918,5 +918,236 @@ def user_login(request):
 
 
 
-
 - 2. Kısım ->
+
+User yerine e-mail tanımlayacağız.
+
+## Redefining Default User from Scratch by Using AbstractBaseUser
+(AbstractBaseUser Kullanarak Varsayılan Kullanıcıyı Sıfırdan Yeniden Tanımlamak)
+
+1.kısımdan tamamen ayırmak için aşağıdaki dosyaları siliyoruz.
+
+delete env/ folder
+delete db.sqlite3
+delete 0001_initial.py under users/migrations
+
+
+Silme işleminden sonra tekrar env kuruyoruz, active ediyoruz.
+Then go to terminal ->
+
+```bash
+py -m venv env
+./env/Scripts/activate
+pip install -r requirements.txt
+py -m pip install --upgrade pip
+```
+
+makemigrations ve migrate yapmadan önce user ı yeniden tanımlayacağız. user yerine e-mail tanımlayacağız.
+
+
+Şimdi <models.py> ımıza gidiyoruz. AbstractBaseUser üzerinden yapacağız, bunun için AbstractBaseUser, PermissionsMixin i import ediyoruz. django.contrib.auth.base_user da da BaseUserManager ı import ediyoruz.
+Şimdi bizim iki tane class tanımlamamız lazım.
+class User ı yeniden yazalım. Daha önce AbstractUser dan inherit etmiştik, şimdi herşeyi sıfırdan yapacağımız için AbstractBaseUser dan ve de permission işlemlerinin tutulduğu PermissionsMixin kütüphanemiz var bu iki class tan User class ımızı türetiyoruz, inherit ediyoruz.
+Artık User class ında fields ların hepsini yeniden tanımlamak zorundayız. Normalde AbstractUser ın içerisinde vardı ama AbstractBaseUser içerisinde email yok.
+email = models.EmailField('email address', unique=True)
+AbstractUser ın içerisinde username, email, first, last name, password ü başka yerden alacağız, last_joined, date_joined başka yerlerden gelecek, is_superuser, is_active, is_staff bu üçünü yapmamız lazım.Aşağıda yapıyoruz.
+username field olarak ne kullanacaksak onu belirtmemiz gerekiyor. USERNAME_FIELD = 'email'  username field ı olarak artık email i kullan.
+REQUIRED_FIELDS = [] ilave fields istiyorsak buraya yazıyoruz, şu and aistemiyoruz oyüzden boş olarak yazdık, görüntü.
+objects i menager vasıtasıyla yazıyoruz ama bizim menager ımız olmadığı için yoruma alıyoruz.
+str metodumuzu yazıyoruz.
+sıralama önemli olduğu için objects kısmına bir base menager atayacağımız için bunun öncesinde bir base menager tanımlamamız lazım. class User ın öncesine gidiyoruz.
+class CustomUserManager(BaseUserManager)
+    pass
+artık ismen de olsa bir manager imiz var, objects i yorumdan kurtarıp objects = CustomUserManager()  diyoruz.
+şimdi yukarıda manager ı tanımlayacağız. Manager user create işlemi ve superusercreate işlemi yapıyor. onların fonksiyonunu tamamlamamız lazım. Önce usercreate işlemini manager a yaptıralım. def create_user(self, email, password, **extra_fields):      user oluştururken gelmesi gereken fieldları yazıyoruz parantez içine, iki tanesi mecburi gelmesi gerekiyor, diğerleri opsiyonel. Bir aşağıda if içerisinde onları kontrol ediyoruz.
+Kriterler default olarak djangodan, settings.py daki password validators da yapıyor ama biz hazır class ları kullanırdsk yapıyor. biz eğer model form da sıfırdan bir form yazarsak onları yapmaz. Biz UserCreationForm kullandık, UserCreationForm içerisinde bunları yapıyor. Ama biz kendi formumuzu kullanırsak, yeni bir form oluşturursak bu sefer validatorsları da bizim oraya ilişkilendirmemiz gerekir. Formumuzu UserCreationForm dan türettğimiz müddetçe sıkıntı yok. Ama modelsFormdan türetirsek bu validatorsu kendimiz yapmak durumunda kalırız.
+Şimdi usercreate işlemi yaptık. Bir de bizim ekstra bir superuser ımız var. onu yapıyoruz. Hani terminalden createsuperuser yazıyoruz ya işte o zaman buraya yazdıklarımız çalışıyor. def create_superuser(self, email, password, **extra_fields)     burada superuser oluşturduğumuz için extra_fields ların içerisinde is_staff, is_active, is_superuser yoksa bunların default değerlerini setdefault('is_staff', True) şeklinde True yapmamız gerkir.
+Eğer kullanıcı bu fieldları bana gönderdiyse ve kasıtlı olarak False yaptıysa benim sistemimizin çökmemesi için onu uyarmam lazım. if extra_fields.get('is_staff') is not True:   ile de hata mesajı döndürüyoruz.
+Kontrol işlemlerim bitince create işleminde bunu yaptıracağız: -> return self.create_user(email, password, **extra_fields)    gönderiyoruz.
+BaseManager işlemleri de bu kadar. Ne yapıyor? bize kullanıcı oluşturma hizmeti veriyor. Öncelikle create user nasıl oluşturulacak ona baktık, bizim için burda önemli olan email ve password ün mutlaka geliyor olması lazım, email geldi mi diye kontrol ediyoruz, gelmediyse hata döndürüyoruz, geldiyse bunu küçük harf normal email formatına çeviriyoruz, sonra modelimize göre yeni bir user oluşturuyoruz.Oluşturduğumuz bu user a set_password ile password ü şifreli bir şekilde ekleyip save edip user ı return ediyoruz.
+superuser da ise bize üç tane field mutlaka gerekli, is_stuff, is_active, is_superuser bunları yoksa ekliyoruz True şeklinde, varsa ve False geldiyse ikaz ediyoruz ValueError veriyoruz, True ise return self.create_user diyerek hemen yukarıda tanımladığımız fonksiyona havale edip usercreate işlemini yaptırıyoruz.
+
+go to users.models.py ->
+
+```python
+
+from django.db import models
+from django.contrib.auth.models import AbstractUser, AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.base_user import BaseUserManager
+# Create your models here.
+
+# class User(AbstractUser):
+#     portfolio = models.URLField(blank=True)
+#     profile_pic = models.ImageField(upload_to='profile_pics', blank=True)
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError('Email field is mandatory')
+            # eğer email yoksa hata mesajı döndür.
+        email=self.normalize_email(email)
+        # email formatına çeviriyor
+        user=self.model(email=email, **extra_fields)
+        user.set_password(password)
+        # password ü kriptolaması için böyle yazdık
+        user.save()
+        return user
+    
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('is_superuser', True)
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff True')
+        if extra_fields.get('is_active') is not True:
+            raise ValueError('Superuser must have is_active True')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser True')
+        
+        return self.create_user(email, password, **extra_fields)
+    
+
+class User(AbstractBaseUser, PermissionsMixin):
+    email=models.EmailField('email address', unique=True)
+    is_staff=models.BooleanField(default=False)
+    is_active=models.BooleanField(default=True)
+    date_joined=models.DateTimeField(auto_now_add=True)
+    # ilk kayıt işleminin tarihini kaydet
+    # auto_add=True güncelleme işleminin tarihini kaydet
+    # superuser PermissionMixin içinden geliyor, o yüzden yeniden tanımlamıyoruz.
+    # password, last_login  AbstractBaseUser içinden geliyor,
+    # first_name, last_name bu projede koymayacağız istersek koyabiliriz.
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+    
+    objects = CustomUserManager()
+    
+    def __str__(self):
+        return self.email
+
+```
+
+
+
+<forms.py> a gidiyoruz, burada değişiklik yapmamız lazım. UserForm da fields larımız arasında artık username diye bir field ımız yok, portfolio, profile_pic, first_name, last_name de yok. Bunların yerine biz fields ı yeniden tanımlıyoruz.
+yeni  fields = ('email', 'password1', 'password2')     böyle oldu.
+
+<forms.py> ->
+
+```py
+from .models import User
+from django.contrib.auth.forms import UserCreationForm
+
+class UserForm(UserCreationForm):
+    class Meta():
+        model = User
+        # fields = ('username', 'email', 'password1', 'password2', 'portfolio', 'profile_pic', 'first_name', 'last_name')
+        fields = ('email', 'password1', 'password2')
+
+```
+
+
+Artık makemigrations ile başlayalım,
+
+go to terminal ->
+
+```bash
+py manage.py makemigrations
+py manage.py migrate
+py manage.py createsuperuser
+py manage.py runserver
+```
+
+
+Sıfırdan user modeli tanımladık ve artık bunu kullanabiliyoruz.
+
+
+
+
+
+
+/*****************************************************/
+Buradan aşağısını anlamadım.
+Derste anlatılmadı.
+/*****************************************************/
+
+
+
+
+go to account.admin.py
+
+```python
+from django.contrib import admin
+
+# Register your models here.
+from django.contrib.auth.admin import UserAdmin
+from .models import User
+from .forms import UserForm, CustomUserChangeForm
+
+
+class CustomUserAdmin(UserAdmin):
+    add_form = UserForm
+    form = CustomUserChangeForm
+    model = User
+    list_display = ('email', 'is_staff', 'is_active', 'is_superuser')
+    list_filter = ('email', 'is_staff', 'is_active', 'is_superuser')
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active', 'is_superuser')}
+         ),
+    )
+    search_fields = ('email',)
+    ordering = ('email',)
+
+
+admin.site.register(User, CustomUserAdmin)
+# admin.site.register(User)
+
+```
+
+go to users.forms.py
+
+```python
+from .models import User
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+
+
+class UserForm(UserCreationForm):
+
+    class Meta():
+        model = User
+        # fields = '__all__'
+        # fields = ('username', 'email', 'password1', 'password2', 'portfolio', 'profile_pic', 'first_name', 'last_name')  # , 'password1')
+        exclude = ('is_staff', 'is_active', 'date_joined', 'password', 'last_login', 'is_superuser', 'groups', 'user_permissions', )
+
+class CustomUserChangeForm(UserChangeForm):
+
+    class Meta:
+        model = User
+        fields = '__all__'
+```
+
+go to users/views.py and amend the line below under def register
+
+```python
+# username = form.cleaned_data['username']
+username = form.cleaned_data['email']
+```
+
+go to terminal
+
+```bash
+py manage.py makemigrations
+py manage.py migrate
+py manage.py createsuperuser
+py manage.py runserver
+```
+
+navigate to http://localhost:8000/admin/
