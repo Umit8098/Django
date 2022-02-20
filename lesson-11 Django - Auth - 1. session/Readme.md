@@ -2,27 +2,28 @@
 project name : authenticate
 application name : user_example
 
-settings.py contents : 
+<settings.py> contents : 
    loaded decouple
    SECRET_KEY is hidden
    INSTALLED_APPS in user_example.apps.UserExampleConfig (app in uzun şekilde yazılmış hali bu, sadece user_example da yeterli oluyor son versiyonlarında.)
    LOGIN_REDIRECT_URL = '/'  en alt satırda da bu kod var.Login olmuş bir kullanıcıyı nereye göndermek istediğimizi belirtiyoruz bu yolla.
 
-settings.py contents : 
+<urls.py> contents : 
    include ile eklenen url ler iki tane. 
        path('', include("user_example.urls")),
        path('accounts/', include('django.contrib.auth.urls'))
+       # djangonun kendi default authentication kütüphanesini include ediyor.
 
 
 app imizin içindeki ->
 
-urls.py ->
+<urls.py> ->
     path('special/', special, name='special'),
     path('register/', register, name='register'),
     path('password_change/', auth_views.PasswordChangeView.as_view(template_name="registration/password_change.html"), name="password_change")
 
 
-views.py ->
+<views.py> ->
     ders  sırasında incelenecek.
 
 
