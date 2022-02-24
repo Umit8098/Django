@@ -624,7 +624,7 @@ urlpatterns = [
 
 
 - Create register.html under templates/registration folder.
-  Templates/kayıt klasörü altında register.html oluşturun.
+  templates/register klasörü altında register.html oluşturun.
 
 Basitçe form post metodu alıyor, dolayısıyla csrf_token alıyor, sadece formu alıyor, input type submit ve value su Register. Template inde hazır olan bir form kullanıyoruz. Nereden inherit ettik? django.contrib.auth paketinin içerisindeki forms lardan UserCreationForm . Bununla bir view tanımladık.
 
@@ -746,12 +746,22 @@ Bunun için if bloklarında şunları kullanabilirsiniz. ->
 
 ```
 
+or / veya ;
+
+```py
+<h1>This is the home page!</h1>
+
+{{ user.username }}
+<br>
+
+{% if user.first_name %}
+    {{ user.first_name }}
+{% endif %}
+
+```
+
 - Refresh home page and see the result.
-
-
-
-
-
+  Ana sayfayı yenileyin ve sonucu görün.
 
 
 
@@ -854,12 +864,12 @@ def password_change(request):
 
 
 
+password_change template imiz bu proje için gösterdiği tek şey formu göstermek, başka hiçbirşey yok. change button u ile  password u change etmek. Yine burada da customization yapılabilir.
 
 
+- Add registration/password_change.html
+  registration/password_change.html oluşturup ekleyin
 
-
-
-password_change template imiz bu proje için gösterdiği tek şey formu göstermek, başka hiçbirşey yok. change button u ile  password u change etmek. Yine burada da customisation yapılabilir.
 
 <password_change.html> ->
 
@@ -879,11 +889,6 @@ password_change template imiz bu proje için gösterdiği tek şey formu göster
 
 ```
 
-Burada değişik birşey gördük, default olarak bizi yine djangonun default password_change sayfasna yönlendirdi.
-
-Password change succesfull dan sonra home page e nasıl dönecek????
-
-
 
 
 
@@ -897,7 +902,7 @@ Dikkatimizi çeken başka bir şey password_change için özel bir yol tanımlad
 
 ```py
 from django.urls import path
-from .views import home_view, register, password_change
+from .views import home_view, register
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -906,6 +911,12 @@ urlpatterns = [
     path('password_change/', auth_views.PasswordChangeView.as_view(template_name="registration/password_change.html"), name="password_change")
 ]
 ```
+
+
+Burada değişik birşey gördük, default olarak bizi yine djangonun default password_change sayfasna yönlendirdi.
+
+Password change succesfull dan sonra home page e nasıl dönecek????
+
 
 
 ### Links to official documentation
