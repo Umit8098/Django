@@ -1,6 +1,6 @@
 En baştan ->
 
-- 1. Kısım ->
+## 1. Kısım ->
 
 # BASE USER PRECLASS SETUP
 
@@ -1023,8 +1023,7 @@ def user_login(request):
 
 ```
 
-
-- 2. Kısım ->
+## 2. Kısım ->
 
 - login olurken user yerine e-mail tanımlayacağız.
 
@@ -1401,85 +1400,4 @@ py manage.py createsuperuser
 py manage.py runserver
 ```
 
-
 - Artık email ile login olabiliyoruz. Sıfırdan yeni bir user modeli tanımladık ve artık bunu kullanabiliyoruz.
-
-
-/*****************************************************/
-Buradan aşağısını anlamadım.
-Derste anlatılmadı.
-/*****************************************************/
-
-
-go to account.admin.py
-
-```python
-from django.contrib import admin
-
-# Register your models here.
-from django.contrib.auth.admin import UserAdmin
-from .models import User
-from .forms import UserForm, CustomUserChangeForm
-
-class CustomUserAdmin(UserAdmin):
-    add_form = UserForm
-    form = CustomUserChangeForm
-    model = User
-    list_display = ('email', 'is_staff', 'is_active', 'is_superuser')
-    list_filter = ('email', 'is_staff', 'is_active', 'is_superuser')
-    fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser')}),
-    )
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active', 'is_superuser')}
-         ),
-    )
-    search_fields = ('email',)
-    ordering = ('email',)
-
-admin.site.register(User, CustomUserAdmin)
-# admin.site.register(User)
-
-```
-
-go to users.forms.py
-
-```python
-from .models import User
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-
-class UserForm(UserCreationForm):
-
-    class Meta():
-        model = User
-        # fields = '__all__'
-        # fields = ('username', 'email', 'password1', 'password2', 'portfolio', 'profile_pic', 'first_name', 'last_name')  # , 'password1')
-        exclude = ('is_staff', 'is_active', 'date_joined', 'password', 'last_login', 'is_superuser', 'groups', 'user_permissions', )
-
-class CustomUserChangeForm(UserChangeForm):
-
-    class Meta:
-        model = User
-        fields = '__all__'
-```
-
-go to users/views.py and amend the line below under def register
-
-```python
-# username = form.cleaned_data['username']
-username = form.cleaned_data['email']
-```
-
-go to terminal
-
-```bash
-py manage.py makemigrations
-py manage.py migrate
-py manage.py createsuperuser
-py manage.py runserver
-```
-
-navigate to http://localhost:8000/admin/
