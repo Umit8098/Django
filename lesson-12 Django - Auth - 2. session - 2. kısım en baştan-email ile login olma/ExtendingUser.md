@@ -1058,7 +1058,6 @@ makemigrations ve migrate yapmadan önce user ı yeniden tanımlayacağız. user
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.base_user import BaseUserManager
 
 # Create your models here.
 
@@ -1068,8 +1067,7 @@ from django.contrib.auth.base_user import BaseUserManager
 
 ```
 
-- AbstractBaseUser üzerinden yapacağız, bunun için django.contrib.auth.models den AbstractBaseUser ı, permission
-  işlemleri için de PermissionsMixin i import ediyoruz. 
+- AbstractBaseUser üzerinden yapacağız, bunun için django.contrib.auth.models den AbstractBaseUser ı, permission işlemleri için de PermissionsMixin i import ediyoruz. 
 
 - Bir de bize manager lazım onun için de django.contrib.auth.base_user dan da BaseUserManager ı import ediyoruz.
 
@@ -1262,15 +1260,15 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Email field is mandatory')
         
         email = self.normalize_email(email)
-        user = sel.model(email=email, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
         return user
     
     def create_superuser(self, email, password, **extra_fields):
-        extra_fields.set_default('is_staff', True)
-        extra_fields.set_default('is_active', True)
-        extra_fields.set_default('is_superuser', True)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('is_superuser', True)
         
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff True')
