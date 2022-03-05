@@ -30,6 +30,8 @@ edit
 delete
 
 
+En başta bir virtual environment oluşturuyoruz, activate ediyoruz, django yu yüklüyoruz, upgrade ediyoruz, requirements.txt dosyamızı oluşturuyoruz. 
+
 ```bash
 py -m venv benv
 ./benv/Scripts/activate
@@ -40,9 +42,9 @@ pip freeze
 pip freeze > requirements.txt
 ```
 
-- create .gitignore
+- create .gitignore  (projenin içine .gitignore oluşturalım.)
 
-- create project
+- create project (projemizi oluşturalım.)
 
 ```bash
 django-admin startproject cblog (iç içe iki klasör oluşturduk.)
@@ -52,12 +54,11 @@ cd ./src/
 ls   (manage.py ile aynı seviyeye geldik!)
 ```
 
-- create application
+- create application (application (blog) oluşturalım.)
 
 ```bash
 py manage.py startapp blog
 ```
-
 
 add settings.py into the INSTALLED_APPS
 
@@ -76,7 +77,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-
+environment değişkenlerini korumak için .env dosyası oluşturuyoruz.
 create .env file
 first install python decouple
 
@@ -100,9 +101,8 @@ add below line to .env file
 <.env> ->
 
 ```py
-SECRET_KEY = django-insecure-(pwhca6*426s5nqi14_9m9a(sty&!zj$lhwpf1xjinuv47xa3e
+SECRET_KEY = django-insecure-(pwhca6*426s5nqi14_)9m9a(sty&!zj$lhw)1xjinuv47xa3e
 ```
-
 
 <settings.py> daki değişikliklerden sonra
 
@@ -126,7 +126,6 @@ urlpatterns = [
     path('', include('blog.urls')),
 ]
 ```
-
 
 blog app in <urls.py> ına gidip view imizin yolunu yazmamız gerekiyor ama biz daha view yazmadığımız için hata vermemesi adına şimdilik yoruma alıyoruz.
 
@@ -156,10 +155,9 @@ from django.urls import path
   bir tane status olacak ve ya draftı olacak isterse yazar bunu yayınlamayacak yada publish olacak ve ana sayfada gösterilecek ancak draft ta ise ana sayfada gösterilmeyecek kullanıcı isterse değişiklik yapıp publish eçekip ana sayfada post unu yayınlanmasını sağlayacak, 
   slug field ımız olacak genelde blog post ların.. şu şekilde url ler görünüyor  how-to-learn-django böyle aralarında tire tire oluyor url de. şimdi artık tek tek yazmaya başlıyoruz fieldlarımızı
 - title = models.CharField
-  (max_length=10)
+  (max_length=100)  max length zorunlu
 - content = models.TextField() 
-  max_length 
-  vermiyoruz kullanıcının blog yazma kapasitesine bırakıyoruz
+  max_length zorunlu değil vermiyoruz kullanıcının blog yazma kapasitesine bırakıyoruz
 - image = models.ImageField() image 
   ları media 
   file larını db ye kaydetmiyoruz, ayrı bir yerde tutuyoruz, kendi 
@@ -175,24 +173,21 @@ from django.urls import path
 - last_updated = models.DateTimeField
   (auto_now=True) her update edildiğinde otomatik olarak tarih saaat 
   ekleniyor.
-- author = models.ForeignKey Burada 
-  da 
-  user 
+- author = models.ForeignKey Burada da user 
   model foringkey i göstereceğiz, bizim db de user tablomuz hazır 
-  geliyordu yani user tablomuz var o tabloy kullanacağız. User ilk başta migrate ettiğimizde bizim db imizde yani admin panelde de görünüyor hem bir grup tablomuz var hemde User tablomuz var işte o hazır verilen user tablomuzu kullanacağız. yine on_delete=models.CASCADE diyoruz yani user ı sildiğim zaman bu post da silinsin istiyorum. Çünkü bir anlamı yok yani user silinecekse postun kalmasının bir anlamı yok. author = models.ForeignKey(User, on_delete=models.CASCADE) Hata vermemesi için yoruma alıyoruz.
+  geliyordu yani user tablomuz var o tabloyu kullanacağız. User ilk başta migrate ettiğimizde bizim db imizde yani admin panelde de görünüyor hem bir grup tablomuz var hemde User tablomuz var işte o hazır verilen user tablomuzu kullanacağız. yine on_delete=models.CASCADE diyoruz yani user ı sildiğim zaman bu post da silinsin istiyorum. Çünkü bir anlamı yok yani user silinecekse postun kalmasının bir anlamı yok. author = models.ForeignKey(User, on_delete=models.CASCADE) Hata vermemesi için yoruma alıyoruz.
 - status = models.CharField() şimdi 
-  bunu drop 
-  down menü gibi yapacağız, onun için bir yöntem var ondan 
+  bunu drop down menü gibi yapacağız, onun için bir yöntem var ondan 
   bahsedeceğiz; choices yada options diyebilirsiniz; bir tane tupple içerisinde biri db de kayıtlı olacağı şekliyle (d) diğeri kullanıcı dropdown menüsünde ise Draft diye gözükecek.
   OPTIONS = (
       ('d', 'Draft'),
       ('p', 'Published'),
   )
-  Bu kısmı üst tarafa yazacağız, ardından yine cahrfield olduğu için max_length vermek zorundayız, bizim buraya gelebilecek en uzun kelimemiz Published 9 karakter olduğu için bir de bizden olsun diyoruz ve 10 yazıyoruz. status = models.CharField(max_length=10, choices=OPTIONS, default='d') 
+  Bu kısmı üst tarafa yazacağız, ardından yine charfield olduğu için max_length vermek zorundayız, bizim buraya gelebilecek en uzun kelimemiz Published 9 karakter olduğu için bir de bizden olsun diyoruz ve 10 yazıyoruz. status = models.CharField(max_length=10, choices=OPTIONS, default='d') 
   Bir de bu drop down un dinamik olarak nasıl kullanılıyor onu da gösterecek.
 - slug = models.SlugField(blank=True) 
   buna özel SlugField ı var, zorunlu olmadığını 
-  blank=True ile belirtiyoruz, çünkü slug field ını zaten biz otomatik olarak generate edeceğiz, onu göstereceğiz nasıl generate edileceğini, dolayısıyla admin panelden doldurmasına gerek kalmayacak. eğer doldurması zorunlu olursa custn validationdan geçemeyecek hata verecek, bunun önüne geçmek için blank True diyoruz. Yine bunu uniq olmasını istiyoruz o yüzden unique=True diyoruz. slug = models.SlugField(blank=True, unique=True)
+  blank=True ile belirtiyoruz, çünkü slug field ını zaten biz otomatik olarak generate edeceğiz, onu göstereceğiz nasıl generate edileceğini, dolayısıyla admin panelden doldurulmasına gerek kalmayacak. eğer doldurulması zorunlu olursa custom validationdan geçemeyecek hata verecek, bunun önüne geçmek için blank True diyoruz. Yine bunu uniq olmasını istiyoruz, çünkü bunu primary key yerine id yerine kullanacağız modelimizde o yüzden unique=True diyoruz. slug = models.SlugField(blank=True, unique=True)   id miz var ama genelde blog larda, e-ticaret sitelerinde de slug kullanılıyor, id kullanılmıyor genelde göstermiyorlar. 
 
 <models.py> ->
 
@@ -291,13 +286,13 @@ urlpatterns = [
 ]
 ```
 
-şimdi de pillow u istedi, image field kullandığımız için, pillow yükledik, tabi requirements.txt ye eklemeiz lazım, 
+şimdi de pillow u istedi, image field kullandığımız için, pillow yükledik, tabi requirements.txt ye eklememiz lazım, 
 
 ```bash
 py -m pip install pillow
 ```
 
-src nin içinden bir üst klasöre requirements.txt nin seviyesine çıktık
+src nin içinden bir üst klasöre requirements.txt nin seviyesine çıkıyoruz;
 
 ```bash
 cd ..
@@ -336,7 +331,7 @@ Admin panele gidiyoruz ve Category ve Post modelimiz görüyoruz.
 py manage.py runserver
 ```
 
-Category nin sonuna gelen s takısı yani çoğul takısını class Meta ilşe düzelteceğiz. <models.py> a gidip Category modelimizin içine class Meta yazarak düzelttik, admin panelden de düzeldiğine baktık ;
+Category nin sonuna gelen s takısı yani çoğul takısını class Meta ile düzelteceğiz. <models.py> a gidip Category modelimizin içine class Meta yazarak düzelttik, admin panelden de düzeldiğine baktık ;
 
 <models.py> ->
 
@@ -369,7 +364,7 @@ class Post(models.Model):
 ```
 
 
-Admin panelde Protect ne işe yarıyordu onları gösterdi, Category oluşturdu, Oject şeklinde görünen isimleri str metoduyla görüntüsünü düzelltik,
+Admin panelde Protect ne işe yarıyordu onları gösterdi, Category oluşturuyoruz, Oject şeklinde görünen isimleri str metoduyla görüntüsünü düzeltik, Post class ında oluşturduğumuz instance ı nasıl gösterecek bana onu belirliyoruz,
 <models.py> ->
 
 ```py
@@ -408,13 +403,34 @@ class Post(models.Model):
 
 Admin panelde django ve react  diye iki tane category ekledik, 
 
-image field ımız db ye kaydedilmiyor demiştik, onun için upload_to='' diye bir parametre belirtmemiz gerekiyor. parantez içerisine blog/ yazarak blog 'un altına kaydet diye buşekilde yazabiliriz ama daha dinamik bir yol gösterdi. <settings.py> a gittik, en altta STATIC_URL var, bu aslında djangonun static file larını bulmak için kullandığı prefix. staticten sonra kullandığımız staticler nelerse olnların dosya yolunu yazıyoruz.
+image field ımız db ye kaydedilmiyor demiştik, onun için upload_to='' diye bir yol belirtmemiz gerekiyor. parantez içerisine hard coded birşey de oluşturabiliriz, blog/ yazarak blog 'un altına kaydet diye buşekilde yazabiliriz ama daha dinamik bir yol gösterdi. <settings.py> a gittik, en altta STATIC_URL var, bu aslında djangonun static file larını bulmak için kullandığı prefix. staticten sonra kullandığımız staticler nelerse onların dosya yolunu yazıyoruz.
 mesela STATIC_URL = 'static/css/main.css'  diye url de gözükecek. Aynı bunu gibi bir tane de MEDIA_URL = ''  belirtmemiz gerekiyor, yoksa django sıkıntı çıkarıyor, ben bu media file ları nerede gösterceğim diye. Buna MEDIA_URL = '/media/' diyebilirsiniz, farklı birşey diyebilirsiniz ama best practice media deniyor.
 Bundan sonrada MEDIA_ROOT='' diye bir yol tanıtmamızı istiyor django. Bunu yine BASE_DIR içerisindeki media_root diyoruz, MEDIA_ROOT = BASE_DIR/'media_root' 
-Bitti mi hayır bir ayar daha yapmamız gerekiyor, şimdi bu media root bizim media file larımızı koyacağımız directory olacak, yani ben ne dedim source un içerisinde ana base dır yolumun içerisinde bir tane media root diye bir tane klasör açacak ve django kullanıcıların yüklediği media file larını bu klasörün altına yükleyecek.
 
+ilk hali: <settings.py> ->
+```py
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-Ana projedeki <urls.py> a gidiyoruz, burada şu importları yapıyoruz -> django.conf dan settings ve django.conf.urls.static dan static (djangonu static function u)
+STATIC_URL = 'static/'
+
+```
+
+değiştirdiğimiz kısım: <settings.py> ->
+```py
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.0/howto/static-files/
+
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = BASE_DIR / 'media_root' 
+
+```
+
+Bitti mi hayır bir ayar daha yapmamız gerekiyor, şimdi bu media root bizim media file larımızı koyacağımız directory olacak, yani ben ne dedim source un içerisinde ana base dır yolumun içerisinde bir tane media_root diye bir tane klasör açacak ve django kullanıcıların yüklediği media file larını bu klasörün altına yükleyecek.
+
+Ana projedeki <urls.py> a gidiyoruz, burada şu importları yapıyoruz -> django.conf dan settings ve django.conf.urls.static den static (djangonun static function u)
 
 Alt kısma if settings.DEBUG:  (settings deki DEBUG True idi yani diyor ki sen geliştirme aşamasındaysan production a geçmemişsen DEBUG ın True iken benim o belirttiğim media root vardı ya sen media file larını devolopment dayken bu belirttiğim media root file ından kullan, mediaları oradan çek şuanda ama ben daha sonra productiona geçtiğim zaman canlıya geçtiğim zaman ben bunarı başka yere yükleyeceğim, sana settings.py da farklı configurasyon ayarları vereceğim ama şuanda geliştirme yaparken benim media file larımı benim gösterdiğim klasör içerisinden kullan diyoruz.)
 urlpatterns e += ile ekliyoruz urlpatterns listesine ekliyoruz, settings.MEDIA_URL i al ondan sonra document_root da yani senin kullanacağın documentlerin root u da 
@@ -437,7 +453,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
 
-Şimdi media folder ımızı oluşturuyoruz. SRC nin içine, application klasörümüz ile, manage.py dosyası ile aynı seviyede. Folder ımızın ismi settings.py da MEDIA_ROOT unuzda ne isim verdiyseniz o isim olmak zorunda (yani 'media_root')
+Şimdi media folder ımızı oluşturuyoruz. SRC nin içine, application klasörümüz ile, manage.py dosyası ile aynı seviyede. Folder klasörümüzün ismi settings.py da MEDIA_ROOT unuzda ne isim verdiyseniz o isim olmak zorunda (yani 'media_root')
 
 
 Modelimize dönüyoruz;
@@ -447,16 +463,58 @@ Modelimize dönüyoruz;
     image field ımızın upload kısmına gidip fonksiyonumuzu kullan diyoruz, image yüklenmezse diye default olarak bir image belirtiyoruz.
     image = models.ImageField(upload=user_directory_path, default='django.jpg')
     Artık kullanıcı models de belirttiğimiz image field ına bir resim koyduğu zaman django otomatik olarak gidip media_root un altında blog diye bir klasör oluşturacak, onun altdında id diye bir klasör oluşturacak, onun altında da resmi koyacak.
-    Admin panele gidip resim yüklüyoruz, draft seçiyoruz, slug field a geldik,
+    Admin panele gidip resim yüklüyoruz, draft seçiyoruz, 
+
+<models.py> -> <
+
+```py
+from django.db import models
+from django.contrib.auth.models import User
+
+def user_directory_path(instance, filename):
+    return 'blog/{0}/{1}'.format(instance.author.id, filename)
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+    
+    def __str__(self):
+        return self.name
+
+    
+class Post(models.Model):
+    OPTIONS = (
+        ('d', 'Draft'),
+        ('p', 'Published')
+    )
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    image = models.ImageField(upload_to=user_directory_path, default='django.jpg')
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    publish_date = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=OPTIONS, default='d')
+    slug = models.SlugField(blank=True, unique=True)
+    
+    def __str__(self):
+        return self.title
+
+```
+    
+    slug field a geldik,
 
     django signals tan bahsedecek, postsave, presave, postdelete, predelete
     signals için modelimizin altında da belirtebiliriz ama best practice olarak app imizin (blog) içerisinde bir file oluşturuyoruz, <signals.py>.
     Eğer signals ı modelin altında oluştursaydık <apps.py> da yapmamız gereken bir değişikliği yapmak zorunda kalmayacaktık.
     Signals için ayrı bir file oluşturduğumuz için <apps.py> da bir değişiklik yapmamız gerekiyor. def ready(self) diye hazır bir function ı override ediyoruz. Yani diyoruz ki bu signals file ını import et ve bu signals file da işlem yap diyoruz.
     
-    <apps.py> ->
+<apps.py> ->
 
-    ```py
+```py
 from django.apps import AppConfig
 
 
@@ -466,7 +524,7 @@ class BlogConfig(AppConfig):
 
     def ready(self):
         import blog.signals
-    ```
+```
 
     Ama bu signals ı modelimizin içinde yazsaydık bu işleme gerek kalmayacaktı.Ekstradan signals.py oluşturduğumuz için apps.py da bu değişikliği yaptık.
 
@@ -486,6 +544,8 @@ class BlogConfig(AppConfig):
     Eğer benim oluşturduğum instance ın slug ı yoksa 
         if not instance.slug:
         instance.slug = slugify(instance.auther.username + ' ' + instance.title)
+    
+    bizim login olurken username kullandığımız için username imiz uniq olmak zorunda, bizim burada uniq bir değer girmek zorundayız onun için instance.auther.username kullanıyoruz (uniq bir değer diye)(bunu uuid ile de yapabiliriz), + ' ' + instance.title kullanıyoruz.
 
 <signals.py> ->
 
@@ -503,7 +563,7 @@ def pre_save_create_slug(sender, instance, **kwargs):
 ```
 Admin panele gidiyoruz, post oluşturuyoruz, slug ı boş bırakıyoruz otomatik oluştursun diye save ediyoruz, post a tıklıyoruz ve sluh kısmına bakıyoruz evet aralarına tire koyarak slug oluşturmuş.
 
-Kullanıcımız silinebiliyor, kullanıcı silinince Post da siliniyor ama image lar db de kayıtlı olmadığı, file sisteminde kayıtlı olduğu için kullanıcını yüklediği  image lar silinmiyor. Bunun için yine burada işlem yapıyoruz. Post modelim silindiğinde image ı da silsin diye. Bunun için de kullanılıyor.Bu yapılacak!!!!!!!!!
+Kullanıcımız silinebiliyor, kullanıcı silinince Post da siliniyor ama image lar db de kayıtlı olmadığı, file sisteminde kayıtlı olduğu için kullanıcını yüklediği  image lar silinmiyor. Bunun için yine burada işlem yapıyoruz. Post modelim silindiğinde image ı da silsin diye. Bunun için de kullanılıyor. Signals Bu yapılacak!!!!!!!!!
 Bu yapılacak!!!!!!!!!
 Bu yapılacak!!!!!!!!!
 Bu yapılacak!!!!!!!!!
@@ -560,7 +620,7 @@ class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     time_stamp = models.DateTimeField(auto_now_add=True)
-    content = models.TextField
+    content = models.TextField()
     
     def __str__(self):
         return self.user.username
@@ -610,7 +670,7 @@ class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     time_stamp = models.DateTimeField(auto_now_add=True)
-    content = models.TextField
+    content = models.TextField()
     
     def __str__(self):
         return self.user.username
@@ -624,6 +684,7 @@ class Like(models.Model):
 ```
 
 PostView modelimizi yazıyoruz;
+(kim görüntülemiş, hangi pstu görüntülemiş, saat kaçta görüntülemiş bu fieldları istiyoruz, tabi bunları çoğaltabiliriz de)
 PostView için de bir tane user ımız olması lazım. User modeli ile ForignKey ilişkisi olacak, on_delete=models.CASCADE olacak yani user silindiğinde PostView de silinsin istiyoruz,
 post ile bir ilişkisinin de olması lazım, post silindiği zaman altındaki View lerin de silinmesi lazım, on_delete=models.CASCADE
 time_stamp veriyoruz;
@@ -668,7 +729,7 @@ class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     time_stamp = models.DateTimeField(auto_now_add=True)
-    content = models.TextField
+    content = models.TextField()
     
     def __str__(self):
         return self.user.username
@@ -697,9 +758,9 @@ from .models import Category, Post, Comment, Like, PostView
 
 admin.site.register(Category)
 admin.site.register(Post)
-admin.site.register(Comment)
 admin.site.register(Like)
 admin.site.register(PostView)
+admin.site.register(Comment)
 ```
 
 modelde değişiklik yaptığımız için makemigrations ve migrate yapıyoruz;
@@ -710,8 +771,9 @@ py manage.py migrate
 py manage.py runserver
 ```
 
+şimdiye kadar yaptığımız değişiklikleri sadece admin panelde görebiliyoruz, çünkü template lerimizi henüz oluşturmadık.
 
-Şu ana kadar db modellerini, tablolarını yazdık, şimdi formları yazacağız, kullanıcıdan form a koyduğumuz field ları doldurmasını isteyeceğiz, kullanıcı fieldları doldurunca biz onları frontend de template ler ile göstereceğiz. Şimdi formları yazacağız; app imizin içinde <forms.py> oluşturuyoruz, içinde postform ve commentform oluşturuyoruz, iki tane forma ihtiyacımız var, bir tanesi postform postu oluşturmak için hem postcreate de kullanacağız hem postu update ederken kullanacağız, diğer bir tanmesi de comment için yani yorum için form oluştuaracağız. Önce form oluşturmak için django dan forms import ediyoruz, sonra modelForm kullanacağımız için .models den Post ve Comment  modellerini import ediyoruz, PostForm mumuzu forms.ModelForm dan inherit ediyoruz class PostForm(forms.ModelForm):   ,   class Meta nın altına modelimizi ve bu modelin fieldlarını belirtiyoruz. (Kullanacaklarımızı yazmak yerine exclude da yapabilirdik.)
+Şu ana kadar db modellerini, tablolarını yazdık, şimdi formları yazacağız, kullanıcıdan form a koyduğumuz field ları doldurmasını isteyeceğiz, kullanıcı fieldları doldurunca biz onları frontend de template ler ile göstereceğiz. Şimdi formları yazacağız; app imizin içinde <forms.py> oluşturuyoruz, içinde postform ve commentform oluşturuyoruz, iki tane forma ihtiyacımız var, bir tanesi postform postu oluşturmak için hem postcreate de kullanacağız hem postu update ederken kullanacağız, diğer bir tanesi de comment için yani yorum için form oluşturacağız. Önce form oluşturmak için django dan forms import ediyoruz, sonra modelForm kullanacağımız için .models den Post ve Comment  modellerini import ediyoruz, PostForm mumuzu forms.ModelForm dan inherit ediyoruz class PostForm(forms.ModelForm):   ,   class Meta nın altına modelimizi ve bu modelin fieldlarını belirtiyoruz. (Kullanacaklarımızı yazmak yerine exclude da yapabilirdik.)
 Bizim status ümüzü modelde drop down olarak kullanmıştık, bunu formda da kullanabiliriz, onu nasıl yapacağız? class metanın hemen üstüne override edeceğimiz field ı yazıyoruz, burada status ü override ediyoruz,  status = forms.ChoiceField(choices=Post.OPTIONS) yani choices içerisine Post.OPTIONS u al diyoruz.
 category için de djangonun şöyle güzel bir yöntemi var ;  category db de kayıtlı, Options gibi static değil dinamik, yani biz admin panelden birşey eklediğimizde otomatik olarak drop down menüsüne onların da eklenmesini istiyoruz bunun için ModelsChoiceField var bunun içerisine bir tane queryset yazıyoruz, Category tablomdaki objects lerin hepsini al diyoruz, tabi Category modelimizi import etmemiz lazım, Şİmdi bana dinamik olarak ben category e admin panelden birşey eklediğim zaman form da o eklediğim şey dinamik olarak gözükecek, ayrıca birşey seçilmediğinde emty_label='Select' yazarak Select görünmesini sağlıyoruz.     category = forms.ModelChoiceField(queryset=Category.objects.all(), empty_label='Select')
 <forms.py> ->
@@ -726,8 +788,8 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = (
             'title',
-            'image',
             'content',
+            'image',
             'category',
             'status',
         )
@@ -766,7 +828,7 @@ class CommentForm(forms.ModelForm):
 
 
 Şuan modellerimiz tamam, formlarımız tamam, artık view lerimizi oluşturmaya başlayacağız;
-<view.py> a gidiyoruz, (frontend de template oluştururken birtane home page yapmadık, home page imizi blogların listelendiği template olarak düşündük biz extradan bir home page yapmadık.) def post_list(request):  postlarımızı sayfada listeleyeceğiz,  qs = Post.objects.all()    (qs-queryset genelde bu şekilde kullanılıyor, obj-objects için de böyle kullanılıyor genelde), Post u .models den import ediyoruz, 
+<view.py> a gidiyoruz, (frontend de template oluştururken bir tane home page yapmadık, home page imizi blogların listelendiği template olarak düşündük biz extradan bir home page yapmadık.) def post_list(request):  postlarımızı sayfada listeleyeceğiz,  qs = Post.objects.all()    (qs-queryset genelde bu şekilde kullanılıyor, obj-objects için de böyle kullanılıyor genelde), Post u .models den import ediyoruz, 
 context={
     'object_list':qs
 }
@@ -912,4 +974,223 @@ h1 ve p tagları arasına aldık ve tekrar çalıştırdık, postları listeledi
 {% endblock content %}
 ```
 
-Bundan sonraki kısmı frontend, tasarım..
+object.content|truncatechars:20 ne işe yarıyor? ->
+
+blurb_text = 'You are pretty smart!'
+{{ blurb_text|truncatechars:15 }}
+You are pretty…
+
+blurb_text = 'You are pretty smart!'
+{{ blurb_text|truncatewords:3 }}
+You are pretty…
+
+blurb = '<p>You are <em>pretty</em> smart!</p>'
+{{ blurb|truncatewords_html:3 }}
+<p>You are <em>pretty…</em></p>
+
+
+
+Bundan sonraki kısmı frontend, tasarım.. daha sonra yapacağız, kaçmayacağız :))
+
+image yorumda kaldı onu da açıyoruz. Açıp resmi de görüyoruz.
+
+Bunu normal api ile yazarken de bunu api olarak döneceğiz, frontende göndermeyeceğiz, bunu jason response olarak döneceğiz, yine aynı şey, ondan sonra jason response daki api endpoint i alıp react ta axios ile alıp componentleri oluşturup, kullanacağız.
+
+post_list view imiz bitti, create view i yapalım, arkasından update yapacağız.
+Create biraz daha farklı bir önceki yaptığımıza göre bi tık farklı; <view.py> a gidip view imizi yazmaya başlıyoruz,
+def post_create(request):
+formumuzu oluşturmuştuk (PostForm) , onu kullanmak için import ediyoruz, from .forms import PostForm   ,  form = PostForm() önce PostForm umuzu boş bir şekilde ekrana getiriyoruz, bunun bir de kısa yöntemi var;
+get ise boş bir form getir ondan sonra eğer request method post ise
+formu bu sefer PostFormun içerisini request.Post ile doldur diyoruz ama biz media file da upload ettiğimiz için bir method daha eklememiz gerekiyor, request.FILES
+if request.method == 'POST':
+    form = PostForm(request.POST, request.FILES)
+
+<!-- form = PostForm()
+if request.method == 'POST':
+    form = PostForm(request.POST, request.FILES) -->
+Bu yöntemi bazen şöyle görebilirsiniz arkadaşlar kısaca ondan bahsedeyim sonra devam ederiz ;
+form = PostForm(requset.POST or None, request.FILES or None)
+Bu ne anlama geliyor?  Post varsa post u al yoksa none olsun yani boş, files varsa files ı al yoksa none olsun yani boş. Yukarıdaki üç satır kod yerine tek satırda çözmüş. Hiç bir farkı yok iki de aynı kapıya çıkıyor.
+
+Tamam devam ediyoruz bizim yöntemle, if form.is_valid(): formumuz valid ise,  şimdi burada bir işlem yapmamız gerekiyor bu formdan veriyi db ye gönderiyoruz ya db de author ın kim olduğunu bizim db ye söylememiz lazım. onun için ekstradan bir işlem yapacağız, bir farklılık da bu, eğer formumuz valid ise bir tane obje oluşturuyoruz post = form.save(commit=False) ne demek bu? bu datayı kaydet ama db ye işleme, önce ben birşey ekleyeceğim (bir user) bu post a. kaydettim bu postu, post.author = request.user postun içerisindeki author benim request objemin içerisindeki user a eşit olacak diyoruz yani bu postu yazan kişi şuan oturum açmış bulunan user, burada author kısmını doldurmuş oluyoruz. işlem bittikten sonra post.save()  diyoruz.
+Burası önemli bu çok kullanılan bir yapı.
+
+Postu oluşturduktan sonra redirect ediyoruz ama önce redirect i import ediyoruz,
+return redirect('list')
+
+Ha bu arada şöyle birşey daha var, mesela bizim birkaç tane daha app imiz var ve bu applerimizin de path name leri arasında da list olabilir, o zaman djangonun kafası karışıyor, bunu önlemek için   app urls.py da app_name = 'blog'  diye bir name space oluşturuyoruz ve blog diyoruz buna, nasıl kullanıyoruz bunu ;
+return redirect('blog:list') blog application ın list ine gönder bunu!
+
+app imizin <urls.py> ->
+```py
+from django.urls import path
+from .views import post_list, post_create
+
+app_name='blog'
+urlpatterns = [
+    path('', post_list, name='list'),
+    path('create/', post_create, name='create'),
+]
+```
+
+artık return redirect('blog:list')  blog app imizin list ine döndür diyerek view imizin context ini oluşturup template imize gönderiyoruz;
+context = {
+    'form':form
+}
+return render(request, 'blog/post_create.html', context)
+<views.py> ->
+```py
+from django.shortcuts import render, redirect
+from .models import Post
+from .forms import PostForm
+
+def post_list(request):
+    qs = Post.objects.all()
+    context={
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+```
+
+Şimdi bunun url ini oluşturalım, post_create view imizi import edip path imizi yazıyoruz.
+
+<urls.py> ->
+```py
+from django.urls import path
+from .views import post_list, post_create
+
+app_name = 'blog'
+urlpatterns = [
+    path('', post_list, name='list'),
+    path('create/', post_create, name='create')
+]
+```
+
+Akabinde create template imizi oluşturuyoruz; base.html den extends edip, block larımızı yazıp arasına form oluşturuyoruz. form un action ı aynı sayfada olduğu için birşey yazmıyoruz, method='POST' olacak,
+method post olduğu için csrf token tag ini {% csrf_token %} koyuyoruz, sonra bunun içerisie formumuzu paragraf tag i içerisinde gönderiyoruz, bir tane de button ekliyoruz type='submit' (POST diye) ,
+
+<post_create.html> ->
+
+```html
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit">POST</button>
+</form>
+
+{% endblock content %}
+    
+```
+
+runserver yapıp create/ sayfasına gidiyoruz, formu görüyoruz, dolduryoruz, post diyoruz, yeni bir post oluşturduk.  
+post.author=......   kısmını yoruma alarak ve de form.save() yaparak çalıştırdık, create etmeye çalıştık, Post has no author hatası aldık. Ben bunu db ye kaydedeceğim ama Post un içinde author a ait bir bilgi yok, author da doldurulması zorunlu bir alan, onun için hata veriyor.
+
+slug da username ve title kullandık, ancak bir user aynı title da yani başlıkta bir post daha oluşturunca hata alıyoruz, şöyle bir mantık kurmuştuk eğer username unique ise bundan sonra title eklerse sıkıntı yaşamayız ama aynı user aynı title ile post oluşturunca hata almaya başladık.   
+biz aynı kullanıcı ile post lar eklediğimiz için eğer aynı post u tekrar oluşturursak bize hata verebiliyor, o yüzden slug ımızı daha esnek yapmamız gerekiyor, bunu biraz değiştireceğiz,   
+python uuid kütüphanesinin uuid4() modülü ile random sayı ürettirip onu ekleyeceğiz.
+
+<signals.py> ->
+```py
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.template.defaultfilters import slugify
+from .models import Post
+
+@receiver(pre_save, sender=Post)
+def pre_save_create_slug(sender, instance, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.author.username + ' ' + instance.title)
+
+```
+
+blog app imizin içerisine kendi script imizi yazacağımız bir file oluşturuyoruz, ismine de best practice <utils.py> diyoruz. uuid4 u kullanacağız, document e gidip inceliyoruz, generate a random UUID yani bize random (universal unique id) uuid üretmesini istiyoruz. uuid import ediyoruz, bir tane function yazıyoruz, def get_random_code():    code = uuid.uuid4() bu bize integer olarak dönüyor ama bunu stringe çeviriyoruz, code = str(uuid.uuid4())   bakalım bize ne dönüyor  return code    print(get_random_code())   çalıştırdık ve terminalde uzun bir uniq kod döndü biz bu kadar uzun istemiyoruz 11 karakter istiyoruz, arada tire de olmasın istiyoruz, burada algoritma düşünüyoruz, nasıl bir algoritma kurabiliriz? 
+    code = str(uuid.uuid4())[:11] başlangıçtan itibaren 11 karakter al diyoruz, replace('-','') metodumuzla tireyi şununla (space değil) değiştir diyoruz.  
+çalıştırdık ve tireyi aradan çıkararak 10 karakterlik bir unique değer döndürdü.
+```
+
+<utils.py> ->
+
+```py
+import uuid
+
+def get_random_code():
+    # code = uuid.uuid4()
+    code = str(uuid.uuid4())[:11].replace('-','')
+    return code
+```
+
+
+Burası çalıştıktan sonra <signals.py> a gidip username kısmını değiştireceğiz, .utils den get_random_code u import ediyoruz,
+slugify kısmına önce instance.title + ' ' + get_random_code()  yazıyoruz.
+
+<signals.py> ->
+
+```py
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.template.defaultfilters import slugify
+from .models import Post
+from .utils import get_random_code
+
+@receiver(pre_save, sender=Post)
+def pre_save_create_slug(sender, instance, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.title + ' ' + get_random_code())
+
+```
+
+runserver yapıp çalıştırıyoruz, yeni bir post oluşturuyoruz admin panelde ve slug da istediğimiz uniq değeri görüyoruz.
+
+<views.py> a gidiyoruz, list view yapmıştık ama bir şeyi yanlış yapmışız, modelimizde bir published yani görünür, bir draft sadece user a görünür olsun dedik, ama bizim frontend imizde draft da olsa hepsi görünüyor, eksik yaptığımız birşey var, burada bizim db den status ü p (published) olanları (db de kayıtlı şekliyle p) getir bana dememiz lazım, bunun için filter kullanacağız,  qs = Post.objects.filter(status='p')  yani db ye git db de status ü p (Published) olanları getir, ben frontend e sadece p (Published) olanları göndereceğim diyoruz. (veya   qs = Post.objects.exclude(status='d') da yazılabilir.)
+
+<views.py> ->
+
+```py
+from django.shortcuts import render, redirect
+from .models import Post
+from .forms import PostForm
+
+def post_list(request):
+    qs = Post.objects.filter(status='p')
+    context = {
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+
+```
+
+runserver yaptık artık sadece published olanlar template e gönderiliyor. Sonra bu Post ların yazarlarının drafta veya published e çekebilmesini update etmelerini sağlayacağız.
