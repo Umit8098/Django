@@ -913,6 +913,9 @@ body nin içine block yapısı oluşturuyoruz.
 </html>
 ```
 
+
+## home/list page ->
+
 blog içerisinde oluşturacağımız templates ler için application klaörümüz olan blog klasörünün içerisine templates isminde bir klasör oluşturup, içerisine yine application ımızın ismiyle bir klasör daha oluşturup içerisine de home page imiz olan <post_list.html> template imizi oluşturuyoruz. içerisine girip <base.html> dosyamızı extend ediyoruz. {% extends 'base.html' %} sonra block larımızı koyuyoruz, (birçok block oluşturup içerisine farklı kodlar konulabilir.)
 {% block content %}
     
@@ -995,6 +998,9 @@ Bundan sonraki kısmı frontend, tasarım.. daha sonra yapacağız, kaçmayacağ
 image yorumda kaldı onu da açıyoruz. Açıp resmi de görüyoruz.
 
 Bunu normal api ile yazarken de bunu api olarak döneceğiz, frontende göndermeyeceğiz, bunu jason response olarak döneceğiz, yine aynı şey, ondan sonra jason response daki api endpoint i alıp react ta axios ile alıp componentleri oluşturup, kullanacağız.
+
+
+## create page ->
 
 post_list view imiz bitti, create view i yapalım, arkasından update yapacağız.
 Create biraz daha farklı bir önceki yaptığımıza göre bi tık farklı; <view.py> a gidip view imizi yazmaya başlıyoruz,
@@ -1194,3 +1200,786 @@ def post_create(request):
 ```
 
 runserver yaptık artık sadece published olanlar template e gönderiliyor. Sonra bu Post ların yazarlarının drafta veya published e çekebilmesini update etmelerini sağlayacağız.
+
+create page ine gittik ve create formumuzun geldiğini gördük. Burada da bir eksiğimiz var; biz bir image file ekliyoruz ama bize yine de default image ı gösteriyor, onu düzelteceğiz, biz post_create.html template imizi yazarken form a ekstradan bir attribute yazmamız gerekiyor, bu django ile değil html ile alakalı bir durum picture, pdf, video  upload ederken formda enctype="multipart/form-data" attribute ünün eklenmesi gerekiyor.
+<post_create.html> ->
+```py
+{% extends 'base.html' %}
+{% block content %}
+
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit">POST</button>
+</form>
+
+{% endblock content %}    
+```
+
+çalıştırdık, create ettik, image ı yüklediğini gördük.
+
+
+## detail page ->
+
+detail page i oluşturacağız; 
+<view.py> a gidiyoruz ve post_detail view imizi yazıyoruz; 
+def post_detail(request, slug)  request i alıyor, (burada biz specific yani özel bir obje ile işlem yapacağımız için o specific objeye ait uniq bir değere ihtiyacımız var), uniq bir değere  ve normalde buraya pk, id yazıyorduk ama bu projede uniq değer olaraak slug kullanmıştık onu yazıyoruz,
+obj = get_object_or_404(Post, slug=slug) requst le beraber gelen slug ı slug a eşit olan Post taki objeyi alıp bunu frontend e gönderiyoruz (get_object_or_404 u da django.shortcuts dan import ediyoruz), bir de post_list te yani ana sayfadaki listede bir tane anchor tag belirleyip ona tıkladığımızda bizi pos_detail sayfasına yönlendirecek, burada hiçbir post işlemi yok direct sayfa render ediyoruz, bunları daha geliştireceğiz yavaş yavaş ana çatımızı şeklillendirelim, post_detail in içerisine CommentForm u göndereceğiz, daha güzelleştireceğiz. 
+context = {
+    'object': obj
+}
+return render (request, 'blog/post_detail.html', context)
+
+<views.py> ->
+
+```py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Post
+from .forms import PostForm
+
+def post_list(request):
+    qs = Post.objects.filter(status='p')
+    context = {
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+
+def post_detail(request, slug):
+    obj = get_object_or_404(Post, slug=slug) # slug=learn-drf-3c78be2186
+    context = {
+        'object': obj
+    }
+    return render(request, 'blog/post_detail.html', context)
+```
+
+blog/templates/blog klasörü içerisine <post_detail.html> template imizi oluşturuyoruz, <base.html> den extends i yapıyoruz, sonra object in neyini görmek istiyorsak belirtiyoruz.
+
+<post_detail.html> ->
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>{{ object.title }}</h1>
+<img src="{{ object.image.url }}" alt="">
+<p>{{ object.content }}</p>
+
+{% endblock content %}
+```
+
+<urls.py> a gidip <post_detail.html> in path ini, yolunu tanımlıyoruz, daha önce path('<str:id>/', post_detail, name='detail') diye tanımlıyorduk, şimdi id değil de slug kullandığımız için path('<str:slug>/', post_detail, name='detail'), şeklinde tanımlıyoruz.
+
+<urls.py> ->
+
+```py
+from django.urls import path
+from .views import post_list, post_create, post_detail
+
+app_name='blog'
+urlpatterns = [
+    path('', post_list, name='list'),
+    path('create/', post_create, name='create'),
+    path('<str:slug>/', post_detail, name='detail'),
+]
+```
+
+ayrıca <post_list.html> template inden, sayfasından <post_detail.html> template ine, sayfasına yönlendirmek için <post_list.html> template inde bir tane anchor tagı oluşturuyoruz, anchor tag inin href ine detail page in url ini ve slug ı koyuyoruz {% url 'blog:detail' object.slug %} , yani url e blog:detail yaz arkasından slug ı koy diyoruz, içerisine de h1 tag ının içerisinde bulunan object.title ı koyuyoruz.
+
+<post_list.html> ->
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+{% for object in object_list %}
+<a href="{% url 'blog:detail' object.slug %}">
+    <h1>{{object.title}}</h1>
+</a>
+<img src="{{ object.image.url }}" alt="">
+<p>{{object.content|truncatechars:20}}</p>
+{% endfor %}
+
+{% endblock content %}
+```
+
+detail page imizi de oluşturduk, bunları süsleyeceğiz..
+
+
+## update page ->
+
+sırada ne var, create ve detail yaptık şimdi update yapıcaz; <views.py> a gidip post_update view imizi yazıyoruz, def post_update(request, slug):    (burada biz specific yani özel bir obje ile işlem yapacağımız için o specific objeye ait uniq bir değere ihtiyacımız var, o da yine slug)
+form = PostForm(request.POST or None, request.FILES or None, instance=obj) ayrıca form bize gelirken dolu gelmesi için instance attribute ünü kullanıyoruz, instance obj (db den get ettiğimiz specific objenin tüm verileriyle dolu olarak gelmesi) ye eşit olsun diyoruz,  
+if form.is_valid():    eğer form valid ise
+form.save()    form u save et
+return redirect('blog:list')    list e redirect et (eğer burada redirect yapmazsak kullanıcı refresh veya geri tuşuna bastığında form birdaha gönderilir, onu engellemek için kullanıcıyı redirect ile post yapamayacağı bir sayfaya gönderilir. )
+eğer method umuz get ise yani post yapılmamışsa template ne göndersin? ,
+context={
+    'object':obj,
+    'form': form
+}
+return render(request, 'blog/post_update.html', context)
+
+<views.py> ->
+
+```py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Post
+from .forms import PostForm
+
+def post_list(request):
+    qs = Post.objects.filter(status='p')
+    context = {
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+
+def post_detail(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    context = {
+        'object': obj
+    }
+    return render(request, 'blog/post_detail.html', context)
+
+def post_update(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    form = PostForm(request.POST or None, request.FILES or None, instance=obj)
+    if form.is_valid():
+        form.save()
+        return redirect('blog:list')
+    context={
+        'object':obj,
+        'form':form
+    }
+    return render(request, 'blog/post_update.html', context)
+
+```
+
+blog/templates/blog klasörü içerisine <post_update.html> template imizi oluşturuyoruz, <base.html> den extends i yapıyoruz, form gösteriyoruz, action ımız bu view da olduğu için birşey yazmıyoruz, method='POST', img kullandığımız için ; enctype="multipart/form-data",   method='POST' kullandığımız için {% csrf_token %} {{ form.as_p }}
+olmazsa olmaz submit button
+
+<post_update.html> ->
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Update {{ object.title }}</h2>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Update</button>
+</form>
+
+{% endblock content %}
+
+```
+
+<urls.py> a gidip <post_update.html> in path ini, yolunu tanımlıyoruz, daha önce path('<str:id>/', post_detail, name='detail') diye tanımlıyorduk, şimdi id değil de slug kullandığımız için path('<str:slug>/update/', post_update, name='update'), şeklinde tanımlıyoruz.
+
+<urls.py> ->
+
+```py
+from django.urls import path
+from .views import post_list, post_create, post_detail, post_update
+
+app_name='blog'
+urlpatterns = [
+    path('', post_list, name='list'),
+    path('create/', post_create, name='create'),
+    path('<str:slug>/', post_detail, name='detail'),
+    path('<str:slug>/update/', post_update, name='update'),
+]
+```
+
+
+## delete page ->
+
+Post delete i yapalım sonra frontend i güzelleştireceğiz, <view.py> a gidiyoruz, post delete view imizi yazıyoruz, def post_delete(request, slug):   specific bir objeyi belirtmek için yine uniq bir değer olan slug ı request ile birlikte kullanıyoruz, ve diğer kodlar...
+
+<views.py> ->
+
+```py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Post
+from .forms import PostForm
+
+def post_list(request):
+    qs = Post.objects.filter(status='p')
+    context = {
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+
+def post_detail(request, slug):
+    obj = get_object_or_404(Post, slug=slug)  # slug=learn-drf-3c78be2186
+    context = {
+        'object': obj
+    }
+    return render(request, 'blog/post_detail.html', context)
+
+def post_update(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    form = PostForm(request.POST or None, request.FILES or None, instance=obj)
+    if form.is_valid():
+        form.save()
+        return redirect('blog:list')
+    context={
+        'object':obj,
+        'form':form
+    }
+    return render(request, 'blog/post_update.html', context)
+    
+def post_delete(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    if request.method == 'POST':
+        obj.delete()
+        return redirect('blog:list')
+    context = {
+        'object':obj
+    }
+    return render(request, 'blog/post_delete.html', context)
+```
+
+
+
+<urls.py> a gidip post_delete view ini import ediyoruz, <post_delete.html> in path ini, yolunu tanımlıyoruz, daha önce path('<str:id>/', post_detail, name='detail') diye tanımlıyorduk, şimdi id değil de slug kullandığımız için path('<str:slug>/delete/', post_delete, name='delete'), şeklinde tanımlıyoruz.
+
+<urls.py> ->
+
+```py
+from django.urls import path
+from .views import post_list, post_create, post_detail, post_update, post_delete
+
+app_name='blog'
+urlpatterns = [
+    path('', post_list, name='list'),
+    path('create/', post_create, name='create'),
+    path('<str:slug>/', post_detail, name='detail'),
+    path('<str:slug>/update/', post_update, name='update'),
+    path('<str:slug>/delete/', post_delete, name='delete'),
+]
+```
+url imizi de oluşturduk şuan ne yapacağız, template i oluşturacağız.
+{{ object }} bize burada object ne dönüyor? title dönüyor. biraz önce onject.title yazdık ama gerek yok, ama kafalar karışmasın diye yine de yazıyoruz, <p>Are you sure delete {{ object.title }}</p>
+form açıyoruz, method='POST'
+{% csrf_token %}
+yes (submit button ile form mu submit ediyoruz) ve cancel (anchor tag ı ile list page e yönlendiriyoruz) button u yapacağız,
+
+
+<post_delete.html> ->
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<p>Are you sure delete {{ object.title }}</p>
+<form action="" method="POST">
+    {% csrf_token %}
+    <a href="{% url 'blog:list' %}">Cancel</a>
+    <button type="submit">Yes</button>
+
+</form>
+
+{% endblock content %}
+```
+
+çalıştırıyoruz, bir post ta tıklayıp detail sayfasına geliyoruz ve url e http://127.0.0.1:8000/learn-drf-30c99a262e/delete   delete yazınca bizi delete html template ine gönderiyor, cancel dersek anchor tag i bizi list e , Yes dersek de bu sefer view logic i post u silip bizi list e redirect ediyor.
+
+
+
+Şimdi bunun frontend ini süsleyeceğiz, like kalp, göz ekleyeceğiz,
+
+base.html e gidiyoruz, bootstrap ten starter template i var onu koyacağız, dha farklı hazır templateleri de var , onları indirip kullanabilirsiniz ama bu şimdilik yeterli bizim için,
+bootstrap e gidiyoruz (https://getbootstrap.com/docs/4.5/getting-started/introduction/)  v4.5 versiyonundaki starter templat ini kopyalayıp, temizlediğimiz base.html imize yapıştırıyoruz. (Yoruma alınmış kısımları silebiliriz)
+body nin içinde h1 tagını silip, önceki base.html imizde bulunan bloklarımızı yerleştiriyoruz. Blocklarımızı div in içerisine alıyoruz, class ına da bootstrap in container diyoruz
+```html
+    <div class="container">
+        {% block content %}    
+        {% endblock content %}
+    </div>
+```
+değişikliği gördük, şimdi bunu card componentine koyup yavaş yavaş ilerleyeceğiz.
+Navbar ekleyeceğiz, navbar eklemenin farklı yollarını göreceğiz, include tag i var exclude vardı ya inherit ediyorduk, bir de include edebiliyorsunuz yine onları,
+navbar kodlarımız için bir template oluşturacağız, base.html in bulunduğu klasöre navbar.html dosyası oluşturuyoruz.Neden? base de fazla kodumuz olmasın, bizim navbar da değişiklik yaparsam eğer base html li fazla kurcalamayayım diye navbar için bir template oluşturuyoruz. (Ayrıca https://getbootstrap.com/docs/4.5/components/navbar/ dan da istediğiniz bir navbarı alıp aklayebilisiniz, sağ tarafta olan linkler için ise birkaç kod yazmanız gerekiyor.) Buradaki can alıcı nokta if bloklarının içindeki kullanıcı login ise şu linkleri göster, değilse bu linkleri göster kısmıdır. (template lerimiz daha hazır olmadığı için onların url kısımlarını körledik.)
+
+<navbar.html> ->
+
+```html
+<header class="site-header">
+    <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top ">
+        <div class="container">
+            <a class="navbar-brand mr-4" href="{% url 'blog:list' %}">Umit Blog</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar Toggle" 
+            aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toogler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarToggle">
+                <div class="navbar-nav mr-auto">
+                    <a class="nav-item nav-link" href="{% url 'blog:list' %}">Home</a>
+                    <a class="nav-item nav-link" href="#">About</a>
+                </div>
+                <!-- Navbar Right Side -->
+                <div class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    {% comment %} {% url 'logout' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="#">Logout</a>
+                    {% comment %} {% url 'profile' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="#">Profile</a>
+                    <a class="nav-item nav-link" href="{% url 'blog:create' %}">New Post</a>
+                    {% else %}
+                    {% comment %} {% url 'profile' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="#">Login</a>
+                    {% comment %} {% url 'register' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="#">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+```
+
+navbar template imizi oluşturduktan sonra base.html e gidip include ediyoruz, body nin içine block larımızın üstüne  {% include 'navbar' %}  ediyoruz. navbar diye yazınca hata verecek,
+
+
+<base.html> ->
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+
+    <title>Blog App</title>
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        {% block content %}
+    
+        {% endblock content %}
+    </div>
+    
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+    <!-- Option 2: jQuery, Popper.js, and Bootstrap JS
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
+```
+
+kaydedip home page imiz olan list template imizin sayfasına baktığımız da navbar ın geldiğini gördük ama css eklememiz gerekiyor. base.html de bir link oluşturacağız, static file lardan bahsetmiştik css, javascript, image, code larını koyduğumuz dosya, şimdi hazırladığımız css file larını static klasörüne koyacağız. App imizin içine static isminde bir klasör oluşturuyoruz, isim önemli, içine de aynı templates klasöründe olduğu gibi app imizin ismiyle aynı isimde 'blog' bir klasör oluşturuyoruz , içine de main.css isminde kendi css lerimizi koyacağımız bir css dosyası oluşturuyoruz. Django da css, javascript, image kullanacağınız zaman yapıyı bu şekilde kuracaksınız. static diye bir klasör oluşturacaksınız, içerisine blog oluşturmak size kalmış oluşturmayabilirsiniz ama application ları name spacing yapmak önemli, içerisine de main.css dosyamızı oluşturup, css kodlarımızı yazıp,  base.html e gidip bootstrap css linkinin altına kendi css linkimizi ekleyeceğiz. 
+
+blog/static/blog <main.css> ->
+
+```css
+body {
+    background: #fafafa;
+    color: #333333;
+    margin-top: 5rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #444444;
+}
+
+ul {
+    margin: 0;
+}
+
+.bg-steel {
+    background-color: #5f788a;
+}
+
+.site-header .navbar-nav .nav-link {
+    color: #cbd5db;
+}
+
+.site-header .navbar-nav .nav-link:hover {
+    color: #ffffff;
+}
+
+.site-header .navbar-nav .nav-link.active {
+    font-weight: 500;
+}
+
+.content-section {
+    background: #ffffff;
+    padding: 10px 20px;
+    border: 1px solid #dddddd;
+    border-radius: 3px;
+    margin-bottom: 20px;
+}
+
+.account-img {
+    height: 110px;
+    width: 110px;
+    margin-right: 20px;
+    margin-bottom: 16px;
+}
+
+.account-heading {
+    font-size: 2.5rem;
+}
+```
+
+
+base.html e gidip css dosyamıza link ekleyeceğiz, Ancak djangoda static file ları kullanmak için base.html sayfamızın başına {% load ststic %} yazmamız gerekiyor. Link eklerken de href ine djangonun url belirtme yazım şekliyle url belirteceğiz, url de url yazıyorduk bunda ise static yazıyoruz, <link rel="stylesheet" href="{% static 'blog/main.css' %}">   ,
+
+<base.html> ->
+
+```html
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'blog/main.css' %}">
+
+    <title>Blog App</title>
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        {% block content %}
+    
+        {% endblock content %}
+    </div>
+    
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+    <!-- Option 2: jQuery, Popper.js, and Bootstrap JS
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
+```
+
+django static klasörünü mutlaka istiyor, burda biz app içinde oluşturduk, bu static klasörünü app içerisinde değil de hani settings.py da TEMPLATES  de 'DIRS':[BASE_DIR, 'templates']  base dır a templates ekle demiştik ya, burada static file ımızı da o şekilde tanımlayabiliriz.
+
+```
+STATIC_URL = .......
+MEDIA_URL = ......
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+MEDIA_RO.......
+```
+
+Base directory nin içerisinde bir tane static diye bir klasör oluşturuyoruz, bu şekilde yaparsak eğer ana projemizin içerisinde bir tane ststic klasörü oluşturup main.css imizi bunun içerisine de koyabiliriz. Django bundan ne anlıyor senin static file ların static diye bir klasörün altında ben o static in içerisine gidip oaradaki ststic file (css veya js) ını alacağım, sonra nerede load ettiysen base.html de mi? buradaki template e load edicem ama aload etmem için bana url ini vermen gerekiyor, link in href inde de satatic e özgü url ini {% static 'blog/main.css' %} veriyoruz.
+
+Şimdi home page imize gidiyoruz, css lerimizin geldiğini ve çalıştıklarını görüyoruz, login olmadığımızda navbar da gelen  menüleri görüyoruz, kendi login sayfamızı/template imizi oluşturmadığımız için admin panelden login oluyoruz (djangoda session var, browserda bir sekmede login olunmuşsa diğer sekmelerde de login olarak tutuyor.) ve home page e döndüğümüzde if bloglarının çalıştığını ve login olmuş kullanıcı menülerini gösterdiğini görüyoruz. Ayrıca New Post menüsüne tıkladığımızda post oluşturmak için bizim daha önce hazırladığımız create template imize gönderiyor, Umit Blog a tıkladığımızda list template imize gönderiyor,  navbar ımız çalışıyor.
+base.html imizi oluşturduk,  navbar ımızı oluşturduk, footer ekleyebilirsiniz, hangi sayfaya koymak istiyorsanız oradan include edebilirsiniz. 
+Veya pageination codunuz varsa pagination.html diya ayrıyeten yazıp, onu include edebilirsiniz daha sonra, birçok şey yapabilirsiniz. 
+
+Şimdi list.html imizi düzeltelim, yine bootstrap components cards (https://getbootstrap.com/docs/4.5/components/card/) ı biraz modifiye edip kullandık, 
+önceki <post_list.html> ->
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+{% for object in object_list %}
+<a href="{% url 'blog:detail' object.slug %}">
+    <h1>{{object.title}}</h1>
+</a>
+<img src="{{ object.image.url }}" alt="">
+<p>{{object.content|truncatechars:20}}</p>
+{% endfor %}
+
+{% endblock content %}
+```
+
+Nasıl modifiye ettik? şimdi bizim bir tane post umuz yok, birçok post umuz var onun için bir for döngüsü kullanıyoruz, bir liste döneceğiz listemiz: object_list nereden alıyoruz bu object_list ' i? views.py da context in içine object_list olarak koymuşuz tüm published post larımızı , ve object_list imizi context içerisinde post_list template imize göndermişiz, işte o listenin elemanlarını card componentinin içerisinde göstereceğiz, card componenetimiz card class ı olan div ile başlıyor, yan yana görünmesi için row koyduk, o row u da column lara böldük, img source unu obj nin image ının url ini koyduk, card body de card title kısmına anchor tag ı ile detail page e link verdik, postun contentini koyuk, sonra asıl yapacağımız şeyler: mesaj sayısı, görüntüleme sayısı ve like sayısını koyacağız, ayrı bir p tag ı içerisinde font awesome dan class ları alıp span tagı içerisinde bunları yerleştirdik sonra {{ obj.comment_count }} bunları modelde bir method belirleyeceğiz bu methodlarla count sayılarını alacağız. Şimdilik onları yoruma aldık ki hata vermesin.
+Sonraki p tag ının içerisinde de ne kadar zaman önce post edildiğinin gösterimi için bir tane template tag ı var, şimdi modelde publish date imiz vardı ya ne  yapıyordu? post objemiz oluştuğu zaman bir tarih zaman veriyor, timesince ise şu anki zaman ile post un oluşturulduğu zaman arasındaki farkı alıyor, şukadar gün şu kadar saaat önce diye aradaki farkı alabiliyoruz.
+font awesome nereden bulduk; fontawesome artık register olmanızı istiyor, register olduktan sonra bir tane şey veriyor, start for free diyorsunuz, mail inizi girmenizi istiyor,   (https://fontawesome.com/start) sonra mailinize gelen link ile bize özel oluşturulmuş script codunun bulunduğu sayfaya yönlendiriyor, script codunu base.html de body nin en alt kısmına ekliyoruz. Önceden link veriyordu, şimdi script veriyor. Daha sonra yorum için comment, görüntüleme için göz, beğeni için kalp icon larını seçip span tag ının içinde <i class="far fa-comment-alt ml-2"></i> şeklinde yazıyoruz.
+
+
+sonraki <post_list.html> ->
+```html
+{% extends 'base.html' %}
+{% block content %}
+<h1 style="text-align: center;">Umit Blog</h1>
+<div class="row mt-5">
+    {% for obj in object_list %}
+    <div class="col-4">
+
+        <div class="card shadow p-3 mb-5 bg-white rounded" style="width: 18rem; height: 25rem;">
+            <img src="{{ obj.image.url }}" class="card-img-top" alt="post_image">
+            <hr>
+            <div class="card-body">
+                <h5 class="card-title"><a href="{% url 'blog:detail' obj.slug %}">{{obj.title}}</a></h5>
+                <p class="card-text">{{obj.content|truncatechars:20}}</p>
+                <p> 
+                    {% comment %} {{ obj.comment_count }} {% endcomment %}     
+                    <span><i class="far fa-comment-alt ml-2"></i></span>
+                    {% comment %} {{ obj.view_count }} {% endcomment %}     
+                    <span><i class="fas fa-eye ml-2"></i></span>
+                    {% comment %} {{ obj.like_count }} {% endcomment %}     
+                    <span><i class="far fa-heart ml-2"></i></span>
+                </p>
+                <p class="card-text"><small>
+                        Posted {{ obj.publish_date|timesince }} ago.
+                    </small>
+                </p>
+
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endblock content %}
+
+```
+
+
+font awesome nereden bulduk; fontawesome artık register olmanızı istiyor, register olduktan sonra bir tane şey veriyor, start for free diyorsunuz, mail inizi girmenizi istiyor,   (https://fontawesome.com/start) sonra mailinize gelen link ile bize özel oluşturulmuş script codunun bulunduğu sayfaya yönlendiriyor, script codunu base.html de body nin en alt kısmına ekliyoruz. Önceden link veriyordu, şimdi script veriyor.
+
+<base.html> ->
+
+```html
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'blog/main.css' %}">
+
+    <title>Blog App</title>
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        {% block content %}
+    
+        {% endblock content %}
+    </div>
+    
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+    <!-- Option 2: jQuery, Popper.js, and Bootstrap JS
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous"></script>
+    -->
+
+    <script src="https://kit.fontawesome.com/f3876d5d9f.js" crossorigin="anonymous"></script>
+
+  </body>
+</html>
+```
+
+
+home/list page de card ların içerisindeki postların yorum için comment, görüntüleme için göz, beğeni için kalp icon larının yanında counter sayılarını koyacağız, bu sayıları biz post modeli üzerinden alabiliriz, çünkü post list te biz post objesi üzerinde dönüyoruz, view imiz de Post objects inden filter ettiğimiz için Post modülünden bu methodları yazdık. <models.py> a gidip oluşturduğumuz Post modelinin altına str metodunun da altına  def comment_count(self): methodumuzu yazıyoruz, içerisine self alacak çünkü bu bizim Post class ımızın methodunu yazıyoruz, 
+(bir post un birden çok comment i olabilir ama bir comment in bir post u olabilir.) bize bu method return self.comment_set.all().count()   bütün commentlerimizin sayısını veriyor.  (Comment class ımızdaki post, comment küçük harf ile yazılacak, djangonun özelliği,  comment_set ile bizi post modelimize ulaştırıyor, post modelimizden de bütün commentlerin sayısını al (djangonun orm yapısından dolayı biraz karışıkmış gibi görünüyor.))
+
+view count için de yine view imizi küçük harfle kullanıyoruz     
+def view_count(self):     return self.postview_set.all().count()
+
+like count için de         def like_count(self):    return self.like_set.all().count()
+
+child dan parentta ulaşmak için bu method u kullanmak gerekiyor, child daki forignkey den parenta ulaşmak için bu methodu kullanmak gerekiyor. 
+
+<models.py> ->
+
+```py
+from django.db import models
+from django.contrib.auth.models import User
+
+def user_directory_path(instance, filename):
+    return 'blog/{0}/{1}'.format(instance.author.id, filename)
+
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+    
+    class Meta:
+        verbose_name_plural = 'Categories'
+    
+    def __str__(self):
+        return self.name
+
+
+class Post(models.Model):
+    OPTIONS = (
+        ('d', 'Draft'),
+        ('p', 'Published')
+    )
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    image = models.ImageField(upload_to=user_directory_path, default='django.jpg')
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    publish_date = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=OPTIONS, default='d')
+    slug = models.SlugField(blank=True, unique=True) # how-to-learn-django
+    
+    def __str__(self):
+        return self.title
+    
+    def comment_count(self):
+        return self.comment_set.all().count()
+    
+    def view_count(self):
+        return self.postview_set.all().count()
+    
+    def like_count(self):
+        return self.like_set.all().count()
+    
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    time_stamp = models.DateTimeField(auto_now_add=True)
+    content = models.TextField()
+    
+    def __str__(self):
+        return self.user.username
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.user.username
+
+class PostView(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    time_stamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.username
+
+```
+
+
+<post_list.html> e gidip oluşturduğumuz count method lara ulaşacağız, yoruma aldığımız yerleri yorumdan kurtarıyoruz, buradan methodlara ulaşabiliyoruz, object oriented da cross oluşturduğumuzda method a. yazıp ulaşabiliyorduk ya, ama method da sonuna parantez koyuyorduk method un, burada template teyken method a ulaşırken sonuna parantez koymuyoruz. methodları span tag leri arasına icondan hemen sonra koyuyoruz.
+
+algoritmayı view de değil de model de yazdık, modelde de class lardan yararlandık, class lara method yazabiliyoruz, methodlarla bu sayılara ulaşabiliyoruz, bunu view de yazıp viewe context in içerisinde koyup da yapabilirdik ama bu method daha kolay, yani bütün logic inizi view e koymanıza gerek yok, modele de koyabilirsiniz, template e de koyabilirsiniz, üçüne de koyabilirsiniz, ama ana logic view de olur.
+
+<post_list.html> ->
+
+```py
+{% extends 'base.html' %}
+{% block content %}
+<h1 style="text-align: center;">Umit Blog</h1>
+<div class="row mt-5">
+    {% for obj in object_list %}
+    <div class="col-4">
+
+        <div class="card shadow p-3 mb-5 bg-white rounded" style="width: 18rem; height: 25rem;">
+            <img src="{{ obj.image.url }}" class="card-img-top" alt="post_image">
+            <hr>
+            <div class="card-body">
+                <h5 class="card-title"><a href="{% url 'blog:detail' obj.slug %}">{{obj.title}}</a></h5>
+                <p class="card-text">{{obj.content|truncatechars:20}}</p>
+                <p> 
+                    {% comment %} {{ obj.comment_count }} {% endcomment %}     
+                    <span><i class="far fa-comment-alt ml-2"></i>{{ obj.comment_count }}</span>
+                    {% comment %} {{ obj.view_count }} {% endcomment %}     
+                    <span><i class="fas fa-eye ml-2"></i>{{ obj.view_count }}</span>
+                    {% comment %} {{ obj.like_count }} {% endcomment %}     
+                    <span><i class="far fa-heart ml-2"></i>{{ obj.like_count }}</span>
+                </p>
+                <p class="card-text"><small>
+                        Posted {{ obj.publish_date|timesince }} ago.
+                    </small>
+                </p>
+
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+{% endblock content %}
+
+```
+
+
+çalıştırdık (runserver) sayıları gördük. admin panelden publish postlardan bir tanesine like, post view, comment ekledik ve home/list page de count ettiğini, logic in çalıştığını gördük.
+
+
