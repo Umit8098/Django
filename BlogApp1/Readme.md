@@ -1982,4 +1982,774 @@ algoritmayı view de değil de model de yazdık, modelde de class lardan yararla
 
 çalıştırdık (runserver) sayıları gördük. admin panelden publish postlardan bir tanesine like, post view, comment ekledik ve home/list page de count ettiğini, logic in çalıştığını gördük.
 
+blog application ı bitireceğiz, daha sonra user application ını kuracağız , orada authenticon kısmını kuracağız, profile page ini oluşturacağız, genel çatıyı kurduk, biraz daha süsleyeceğiz, birkaç tane daha form (comment form) ekleyeceğiz,
+
+şimdi detail view imizi şekillendireceğiz, <views.py> a gidiyoruz, list view de olduğu gibi like message ve gösterme sayısını yerleştireceğiz, alta bir de comment formu koyacağız, kullanıcıdan comment almak için bir form oluşturmamız gerekiyor, zaten comment modelimiz var, bu modelden modelForm ile bir tane form oluşturacağız, bu formu da detail template imize göndereceğiz, aaa zaten modelForm u oluşturmuşuz <forms.py> da, ModelForm dan inherit ediyoruz, model olarak Comment modelini kullanıyoruz, içeirsine sadece content koyuyoruz, neden sadece conten koyuyoruz?, zaten kullandığımız Comment modelinde user forignKey, post da forignKey, time_stamp i kendisi veriyordu, kullanıcıdan tek istediğimiz form a comment ini yazması, daha sonra bunu view de göstereceğiz, view de nerde? post detail e gidince kullanıcı, post_detail in içerisinde, sayfasında render edeceğiz bu formu,
+formu nasıl render ediyorduk? get olduğu zaman formumuzu render edecek  form= CommentForm()  (CommentForm u forms.py dan impor ediyoruz)  , zaten object imizi almışız, arkasından kullanıcı bir post işlemi yapacak, commenti POST edecek  ve  if request.method == 'POST':     eğer request method post ise, formu dolduruyoruz,   form = CommentForm(request.POST)   formu POST methoduyla request edilen veilerle doldur,  sonra formun valid olup olmadığının kontrolü    if form.is_valid():     ,   ardından Post ta yaptığımız gibi; önce bir obje oluşturacağız, formu save edeceğiz ama db ye kaydetmeyeceğiz neden? bizim form un içerisine (bakın modelde db e kaydetmemiz gereken ne var post ve user)  post ve user ı formun içerisine koymamız gerekiyor, time_stamp i zaten create ettiği zaman db kendisi koyuyor, contenti zaten kullanıcıdan alıp gönderiyoruz, bizim user ve post u form ile birlikte db ye göndermemiz gerekiyor, yani post create de yaptığımızı burada tekrar edeceğiz, comment diye bir değişken oluşturuyoruz, sonra comment = form.save(commite=False)    formu save et comment e tanımla commite false diyerek commite etmedik yani db ye göndermedik, bunun default u True dur,  (db ye göndermedik henüz) ,   şimdi artık biz bu comment objesine user ı koymamız lazım db ye göndermeden önce comment.user = request.user    request objesinin içerisindeki user ı al yani login olmuş user ı al comment objesine koy, sonra bu comment objesinin bir de post unu göndermemiz lazım, zaten yukarıda obj değişkeniyle slug=slug olan Post u almıştık,   comment.post = obj      obj değişkenimiz yani post umuzu da comment e koyuyoruz  ve formumuzu doldurmuş oluyoruz,   ondan sonra comment.save() ile  db ye bunu kaydetmişolacağız,  tabi her post işleminden sonra return redirect() yapıcaz ama tabi şöyle olacak, comment formum  detail page in altında olacağı için post ettiğimiz zaman bizim yine bu sayfada kalmamız gerekecek, aynı sayfayı render etmemiz gerekecek, onun için return redirect('blog:detail', slug=slug)    yani aynı sayfada renden etmesi için uniq değer olan slug ı da eklemeiz gerekiyor ki hangi detail sayfası olduğunu bu uniq değer ile belirtiyoruz,  Bunu farklı şekillerde de yapabilirisiniz mesela  return redirect(request.path)     bu da aynı bulunduğu sayfaya redirect eder, ancak ilk kullanım daha iyi bir kullanım.
+daha sonra da formu muzu context içerisinde template imize göndereceğiz, 
+context= {
+    'object': obj,
+    'form': form
+}
+
+<views.py> ->
+
+```py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Post
+from .forms import PostForm, CommentForm
+
+def post_list(request):
+    qs = Post.objects.filter(status='p')
+    context = {
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+
+def post_detail(request, slug):
+    # print(request.user)
+    form = CommentForm()
+    obj = get_object_or_404(Post, slug=slug)  # slug=learn-drf-3c78be2186
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commite=False)
+            comment.user = request.user
+            comment.post = obj
+            comment.save()
+            return redirect('blog:detail', slug=slug)
+    context = {
+        'object': obj,
+        'form': form
+    }
+    return render(request, 'blog/post_detail.html', context)
+
+def post_update(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    form = PostForm(request.POST or None, request.FILES or None, instance=obj)
+    if form.is_valid():
+        form.save()
+        return redirect('blog:list')
+    context={
+        'object':obj,
+        'form':form
+    }
+    return render(request, 'blog/post_update.html', context)
+    
+def post_delete(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    if request.method == 'POST':
+        obj.delete()
+        return redirect('blog:list')
+    context = {
+        'object':obj
+    }
+    return render(request, 'blog/post_delete.html', context)
+```
+
+
+view imizi yazdık ve formumuzu context içerisinde detail template imize gönderdik, şimdi bu view i detail template imizde, page imizde render edeceğiz, <post_detail.html> e gidiyoruz, formumuzu yerleştiriyoruz, yine aynı sayfaya gönderdiğimiz için action ımızı yine boş bırakıyoruz , methodumuz post olacak, method post olduğu için csrf imizi koyuyoruz, sonra formumuzu render ediyoruz bir tane de submit button u koyuyoruz, save edip page imize gidiyoruz, tabi şuan sadece comment i oluşturacak, çalıştığını kontrol edelim, admin panelinden de comments başlığı altından da commentimizi görüyoruz.
+
+<post_detail.html> ->
+
+```py
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>{{ object.title }}</h1>
+<img src="{{ object.image.url }}" alt="">
+<p>{{ object.content }}</p>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Comment</button>
+</form>
+
+{% endblock content %}
+```
+
+şimdi biz bu commentin içerisindeki verileri, kim yapmış, ne zaman yapmış, içeriği ne, commentin hemen altında göstereceğiz; Post modelimizden çektiğimiz, post_detail view imizden template imize context te gönderdiğimiz object in içerisinde neler var bir bakalım? <models.py> daki modelimizi açalım, bir method oluşturacağız, object imiz içinde bizim comment imizin olması gerekiyor, bizim bu comment e ulaşmamız gerekiyor, bunu nasıl yazacağız? yukarıda methodlar yazmıştık ya, yine bir method la bunun altına tanımlayacağız, diyeceğiz ki bu objeye ait olan commentleri göster, zaten bundan tekrar bahsedecektik, <models.py>  de methodlarımızın altından devam ediyoruz, 
+def comments(self):           
+return self.comment_set.all()  (Normalde Comment ama burada comments küçük harfle kullanıyoruz.)  bu post classından oluşmuş bir objenin yani benim blog umun altına yapılmış bütün comments leri bu method la ulaşabileceğiz
+
+
+<models.py> ->
+
+```py
+from django.db import models
+from django.contrib.auth.models import User
+
+def user_directory_path(instance, filename):
+    return 'blog/{0}/{1}'.format(instance.author.id, filename)
+
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+    
+    class Meta:
+        verbose_name_plural = 'Categories'
+    
+    def __str__(self):
+        return self.name
+
+
+class Post(models.Model):
+    OPTIONS = (
+        ('d', 'Draft'),
+        ('p', 'Published')
+    )
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    image = models.ImageField(upload_to=user_directory_path, default='django.jpg')
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
+    publish_date = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=OPTIONS, default='d')
+    slug = models.SlugField(blank=True, unique=True) # how-to-learn-django
+    
+    def __str__(self):
+        return self.title
+    
+    def comment_count(self):
+        return self.comment_set.all().count()
+    
+    def view_count(self):
+        return self.postview_set.all().count()
+    
+    def like_count(self):
+        return self.like_set.all().count()
+    
+    def comments(self):
+        return self.comment_set.all()
+    
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    time_stamp = models.DateTimeField(auto_now_add=True)
+    content = models.TextField()
+    
+    def __str__(self):
+        return self.user.username
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.user.username
+
+class PostView(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    time_stamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.username
+```
+
+
+daha sonra detail <post_detail.html> e gidip, şeyi render etmek için for döngüsü yapacağız, for comment in object.comments  (view imizde objemiz neydi object ti, modelimizde methodumuza ne isim vermiştik comments), yukarıdaki method larla sayılarına ulaşmıştık, buradaki method da sadece commentleri alacağız sayısını değil, 
+{{ comment.content }}
+{% endfor %}
+çalıştığını gördük,  kim tarafından yazıldığını p tagı içerisinde 
+<p>comment by {{ user }}</p>
+
+<post_detail.html> ->
+
+```py
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>{{ object.title }}</h1>
+<img src="{{ object.image.url }}" alt="">
+<p>{{ object.content }}</p>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Comment</button>
+</form>
+<br>
+{% for comment in object.comments %}
+<p>comment by {{ user }}</p>
+{{ comment.content }}
+<hr>
+{% endfor %}
+
+{% endblock content %}
+```
+
+
+şimdi like oluşturacağız, onun için <views.py> da bir fonksiyon yazacağız, like tıklayınca db deki like sayısını arttıracak, aynı kullanıcı tekrar tıklarsa like lamışsa geri alacak, bunun algoritmasını kuruyoruz, en alt satıra gelip ;  biz burada yine db de bir işlem yapacağımız için yani db de bizim like modelimiz var like modelimize bir tane veri ekleyeceğiz, tekrar tıklanırsa silinmesi gerekiyor, bizim bu işlemi post ile yapmamız gerekiyor, 
+def like(request, slug):
+    if request.method == 'POST':
+     şimdi burada bir algoritama kurmamız gerekiyor, ilk önce bizim hangi post u like layacağımızı almamız gerekiyor, bizim yine like ın içerisine bir slug göndermemiz gerekiyor, slug la bizim hangi post a işlem yapacağımızı bilmemiz gerekiyor, neden bilmemiz gerekiyor?, model de like a gelirsek içinde bir post değişkenimizin olduğunu görüyoruz, hangi post a like yapacağımızı bilmemiz gerekiyor, bunun için request le birlikte slug da gönderiyoruz,
+     obj = get_object_or_404(Post, slug=slug)    artık bununla hangi post a like yapacağımızı biliyoruz,
+     burada 
+     like_qs = Like.objects.filter(user=request.user, post=obj)  like queryset diye bir değişken oluşturuyoruz, (modelden Like modelimizi import ediyoruz) bunda da db de yaptığımız bir like var mı onu filtre edeceğiz, kontrol edeceğiz, filter içinde; user ımız şuandaki request.user ımıza eşit olacak, post da hangi post da şuanki işlem yaptığımız post a eşit olması lazım yani obj ye eşit olması lazım. Şimde eğer bundan bir değer dönüyorsa demekki biz bu postu like lamışız o zaman tıkladığımız zaman sayıyı bir düşürecek, eğer like ımız yoksa sayıyı bir arttıracak ; 
+     <!-- if like_qs.exists():      -->
+     <!-- exists() diye bir method var, genelde query set lerde exists() kullanılıyor, yani bu like_qs ten elde ettiğimiz birşey varsa; -->
+     <!-- (exists() olmadan da oluyor.) -->
+     if like_qs:     
+     like_qs[0].delete()   o var olanı sil,
+     else:        yok eğer dolu değilse de 
+     Like.objects.create(user=request.user, post=obj)     şuanki user ımızı ve şuanki post umuzu al oluştur.
+     bunları yaptıktan sonra redirect ile yine detail page de kalmasını söylüyoruz,  return redirect('blog:detail', slug=slug)
+
+<views.py> ->
+
+```py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Post, Like
+from .forms import PostForm, CommentForm
+
+def post_list(request):
+    qs = Post.objects.filter(status='p')
+    context = {
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+
+def post_detail(request, slug):
+    # print(request.user)
+    form = CommentForm()
+    obj = get_object_or_404(Post, slug=slug)  # slug=learn-drf-3c78be2186
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.post = obj
+            comment.save()
+            return redirect('blog:detail', slug=slug)
+    context = {
+        'object': obj,
+        'form': form
+    }
+    return render(request, 'blog/post_detail.html', context)
+
+def post_update(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    form = PostForm(request.POST or None, request.FILES or None, instance=obj)
+    if form.is_valid():
+        form.save()
+        return redirect('blog:list')
+    context={
+        'object':obj,
+        'form':form
+    }
+    return render(request, 'blog/post_update.html', context)
+    
+def post_delete(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    if request.method == 'POST':
+        obj.delete()
+        return redirect('blog:list')
+    context = {
+        'object':obj
+    }
+    return render(request, 'blog/post_delete.html', context)
+
+def like(request, slug):
+    if request.method == 'POST':
+        obj = get_object_or_404(Post, slug=slug)
+        like_qs = Like.objects.filter(user=request.user, post=obj)
+        if like_qs:
+            like_qs[0].delete()
+        else:
+            Like.objects.create(user=request.user, post=obj)
+        return redirect('blog:detail', slug=slug)
+```
+
+views.py da view imizi yazdık, şimdi buna bir url tanımlayalım, app imizin <urls.py> ına gidip
+
+<urls.py> ->
+
+```py
+from django.urls import path
+from .views import post_list, post_create, post_detail, post_update, post_delete, like
+
+app_name='blog'
+urlpatterns = [
+    path('', post_list, name='list'),
+    path('create/', post_create, name='create'),
+    path('<str:slug>/', post_detail, name='detail'),
+    path('<str:slug>/update/', post_update, name='update'),
+    path('<str:slug>/delete/', post_delete, name='delete'),
+    path('<str:slug>/like/', like, name='like'),
+]
+
+```
+
+oluşturduğumuz bu like viewi detail page imize koyacağız, tabi şuan sadece html yazarak koyuyoruz daha sonra stillendireceğiz, en alta gelip;
+kullanıcıdan like bilgisi almak için form kullanıyoruz, bunun için forms.py da form oluşturmadık, kendimiz de html de form oluşturabiliriz, burası önemli bu formda ki action ımıza nereye gitmesini istiyorsak orasının url ini dinamik olarak tanımlıyoruz, burada blog app imizin like url ine gitmesini ve de giderken objectin slug ını almasını istiyoruz, 
+(action kısmında blog app in like url ine object in slug ıyla gönderme sebebimiz; bu formdaki verilerle views.py daki like view inde işlem yapmamızı sağlamak için ve de like view ine de urls.py da tanımladığımız like url i vasıtasıyla ulaşabildiğimiz için form un action kısmına blog app inin like url ini vermemiz gerekiyor, arkasından da objenin slug verisiyle hangi post olduğunu belirtmemiz gerekiyor. )
+methodumuz da post olacak.
+method post olduğu için csrf token ımızı koyuyoruz,
+form için iki tane input oluşturacağız ama inputlarımızı göstermeyeceğiz, neden input oluşturuyoruz? model.py a bakarsak Like modelimizde bir user bir de post bilgisinin girilmesi gerekiyor ama biz bunları otomatik olarak zaten view imizde def like içerisinde Like_objects.create içerisine (user=request.user, post=obj)  ile create ederken koyuyoruz. Dolayısıyla input type text değil de hidden yapıyoruz ki kullanıcı bunu görmesin, name i busefer manuel vermek zorundayız çünkü bunu kendimiz hazırlıyoruz, django name i default olarak şu şekilde veriyor; field ın adı ne ise post diyeceğiz.
+diğer input u da aynı şekilde busefer name i ne olacak db de ismi ne ise onu vereceğiz yani user diyeceğiz.
+bir tane de submit button oluşturuyoruz, şimdilik Like diyoruz daha sonra fontawesome dan alacağımız icon ile değiştireceğiz.
+hemen ardına da post_list.html de olduğu gibi like sayısını  {{ object.like_count }}  ile göstersin istiyoruz. 
+
+<post_detail.html> ->
+
+```py
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>{{ object.title }}</h1>
+<img src="{{ object.image.url }}" alt="">
+<p>{{ object.content }}</p>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Comment</button>
+</form>
+<br>
+{% for comment in object.comments %}
+<p>comment by {{ user }}</p>
+{{ comment.content }}
+<hr>
+{% endfor %}
+
+<form action="{% url 'blog:like' object.slug %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden", name="post">
+    <input type="hidden", name="user">
+    <button type="submit">Like</button>{{ object.like_count }}
+</form>
+
+{% endblock content %}
+```
+
+çalıştırıyoruz, new post oluşturuyoruz, title ına tıklayıp detail page ine gidiyoruz, like buttonuna tıklıyoruz bir artıyor, bir daha tıklıyoruz bir azalıyor, yani çalışıyor, exists() demeye gerek yokmuş, başka bir kullanıcıyla deneyelim, admin panelden başka bir kullanıcı oluşturuyoruz, staff ve superuser yetkisi de veriyoruz (çünkü sadece admin panalden login olunabiliyor şuanda onun için yeni kullanıcı da ancak admin panelden login olabileceği için superuser yetkisini veriyoruz ki login olsun ve post detail paginden like yapabilsin)  login oluyor, deniyoruz, çalışıyor.  
+
+
+user ın authenticate ise varsa update ve delete buttonları görünecek, değilse user a update ve delete buttonlarını göstermeyeceğiz, şuanda url imizi korumuyoruz daha, yani user detail page imizin url kısmına update veya delete yazdığı zaman bu sayfalara ulaşamaması lazım, onlara geleceğiz.
+şimdi o işlemi de halledelim, <detail.html> e gidiyoruz, 
+bizim kullanıcının kendi post larını update ve delete yapabilmesi için sadece kendi post larının detail page inde update ve delete  i gösterecek ancak kendine ait olmayan post ların detail page inde bunları göstermeyecek şekilde bir logic kurmamız gerekiyor, yani bu post bu user a mı ait? ;
+bir tane if statement kuruyoruz, 
+{% if user.id == object.author.id %}   user olmuş kişi ile post un author unun id si eşit eşit ise yani login olmuş kişi ile postun sahibi aynı kişi ise;
+<a href="{% url 'blog:update' object.slug %}">Update</a>   Update e slug sayesinde spesific obje ile  git   
+<a href="{% url 'blog:delete' object.slug %}">Delete</a>   Delete e slug sayesinde spesific obje ile git
+
+<detail.html> ->
+
+```py
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>{{ object.title }}</h1>
+<img src="{{ object.image.url }}" alt="">
+<p>{{ object.content }}</p>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">Comment</button>
+</form>
+<br>
+{% for comment in object.comments %}
+<p>comment by {{ user }}</p>
+{{ comment.content }}
+<hr>
+{% endfor %}
+
+<form action="{% url 'blog:like' object.slug %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden", name="post">
+    <input type="hidden", name="user">
+    <button type="submit">Like</button>{{ object.like_count }}
+</form>
+<br>
+
+{% if user.id == object.author.id %}
+<a href="{% url 'blog:update' object.slug %}">Update</a>
+<a href="{% url 'blog:delete' object.slug %}">Delete</a>
+{% endif %}
+    
+{% endblock content %}
+```
+
+Ama bizim bir güvenlik açığımız var burada, ne o? user ın sahibi olmadığı postlar ile ilgili update, delete buttonları görünmüyor ama detail page inde iken url e update veya delete yazarsa o sayfalara girebiliyor, yani kendine ait olmayan postları update/delete edebiliyor, bu bir güvenlik açığı.
+url imizi view imizde koruyabiliriz. <views.py> a gidiyoruz; 
+post_delete view imizde obj tanımladıktan sonra hemen altına 
+if request.user.id != obj.author.id:  (burda id leri yazmasanız da olur ama garanti olsun diye yazıyoruz.)
+<!-- return HttpResponse('You are not authorized!' )      tabi HttpResponse u da import etmeliyiz. -->
+return redirect('blog:list' )    list sayfasına da redirect edebiliriz.
+çalıştırıyoruz, artık user, sahibi olmadığı post ların detail page inde iken url e delete yazıp delete page ine gitmeye çalışırsa list page ine redirect ediliyor.
+<!-- veya message vereceğiz, message a daha gelmedik. -->
+post_update view imiz de de aynı codu yazıyoruz..
+çalıştırıyoruz, artık user, sahibi olmadığı post ların detail page inde iken url e update yazıp update page ine gitmeye çalışırsa list page ine redirect ediliyor.
+
+<views.py> ->
+
+```py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Post, Like
+from .forms import PostForm, CommentForm
+from django.http import HttpResponse
+
+def post_list(request):
+    qs = Post.objects.filter(status='p')
+    context = {
+        'object_list':qs
+    }
+    return render(request, 'blog/post_list.html', context)
+
+def post_create(request):
+    # form = PostForm(request.POST or None, request.FILES or None)
+    form = PostForm()
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect('blog:list')
+    context = {
+        'form':form
+    }
+    return render(request, 'blog/post_create.html', context)
+
+def post_detail(request, slug):
+    # print(request.user)
+    form = CommentForm()
+    obj = get_object_or_404(Post, slug=slug)  # slug=learn-drf-3c78be2186
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.post = obj
+            comment.save()
+            return redirect('blog:detail', slug=slug)
+    context = {
+        'object': obj,
+        'form': form
+    }
+    return render(request, 'blog/post_detail.html', context)
+
+def post_update(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    form = PostForm(request.POST or None, request.FILES or None, instance=obj)
+    if request.user.id != obj.author.id:
+        # return HttpResponse('You are not authorized!')
+        return redirect('blog:list')
+    if form.is_valid():
+        form.save()
+        return redirect('blog:list')
+    context={
+        'object':obj,
+        'form':form
+    }
+    return render(request, 'blog/post_update.html', context)
+    
+def post_delete(request, slug):
+    obj = get_object_or_404(Post, slug=slug)
+    if request.user.id != obj.author.id:
+        # return HttpResponse('You are not authorized!')
+        return redirect('blog:list')
+    if request.method == 'POST':
+        obj.delete()
+        return redirect('blog:list')
+    context = {
+        'object':obj
+    }
+    return render(request, 'blog/post_delete.html', context)
+
+def like(request, slug):
+    if request.method == 'POST':
+        obj = get_object_or_404(Post, slug=slug)
+        like_qs = Like.objects.filter(user=request.user, post=obj)
+        if like_qs:
+            like_qs[0].delete()
+        else:
+            Like.objects.create(user=request.user, post=obj)
+        return redirect('blog:detail', slug=slug)
+
+```
+
+Şu ana url imizi de güvenlikli hale getirdik. Daha sonra authentication koyunca da login require koyacağız, yani login olmayan bazı işlemleri yapamayacak. Mesela comment koyamayacak, like için login olmasını isteyeceğiz.
+
+
+
+
+
+Şimdi <post_detail.html> template inin html-css kısmını değiştiriyoruz; üzerinden bir daha geçiyoruz. djangonun crispy forms paketi ile formlarımızı güzelleştirdik, (aşağıda kurulumunu izah ediyoruz.)
+card objesi içerisine image ı koyduk, sonra title ı koyduk, 
+
+<post_detail.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="card mb-3">
+    <img src="{{ object.image.url }}" class="card-img-top" alt="post_image">
+    <div class="card-body">
+        <h2 class="card-title">{{ object.title }}</h2>
+        <hr>
+        <div>
+            <span><i class="far fa-comment-alt ml-2"></i>{{ object.comment_count }}</span>
+            <span><i class="fas fa-eye ml-2"></i>{{ object.view_count }}</span>
+            <span><i class="far fa-heart ml-2"></i>{{ object.like_count }}</span>
+            <span class="float-right"><small>Posted {{ object.publish_date|timesince }} ago.</small></span>
+        </div>
+        <hr>
+        <p class="card-text">{{ object.content }}</p>
+        <hr>
+        <div>
+            <h4>Enjoy this post? Give it a LIKE!</h4>
+        </div>
+        <div>
+            <form action="{% url 'blog:like' object.slug %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="post">
+                <input type="hidden" name="user">
+                <button type="submit"><i class="far fa-heart fa-lg"></i></button>
+                {{ object.like_count }}
+            </form>
+            <hr>
+            <!-- {% if user.is_authenticated %} -->
+                <h4>Leave a comment below</h4>
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    {{ form | crispy}}
+                    <button class="btn btn-secondary btn-sm mt-1 mb-1">SEND</button>
+                </form>
+                <hr>
+                <h4>Comments</h4>
+                {% for comment in object.comments %}
+                <div>
+                    <p>
+                        <small><b>Comment by {{ user.username}}</b></small> - <small>{{ comment.time_stamp|timesince }} ago.</small>
+                    </p>
+                    <p>
+                        {{ comment.content }}
+                    </p>
+                </div>
+                {% endfor %}
+                <hr>
+                <!-- {% else %} -->
+                        {% comment %} {% url 'login' %} {% endcomment %}
+                <!-- <a href="#" class="btn btn-primary btn-block">Login to comment</a> -->
+            <!-- {% endif %}        -->
+        </div>
+    </div>
+    <div class="m-3">
+        
+        {% if user.id == object.author.id %}
+        <a href="{% url 'blog:update' object.slug %}" class="btn btn-info">Edit</a>
+        <a href="{% url 'blog:delete' object.slug %}" class="btn btn-danger">Delete</a>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+
+
+
+- Formlarımız çirkin görünüyor, djangonun form düzenleme paketi olan crispy form kullanacağız. Önce install edeceğiz, arkasından <settings.py> da INSTALLED_APPS e ekleyeceğiz. default olarak uni-form ile geliyor ama biz bootstrap4 e çevireceğiz,
+
+```
+INSTALLED_APPS = (
+    ...
+    'crispy_forms',
+)
+```
+
+
+```
+{% load crispy_forms_tags %}
+
+<form method="post" class="uniForm">
+    {{ my_formset|crispy }}
+</form>
+```
+
+şeklinde kullanılıyor..
+
+install etmek için environment klasörümüzün seviyesine geliyoruz (hali hazırda env klasörü ile aynı seviyede bulunan src klasörünün içerisindeyiz. Yani bir üst seviyeye çıkmamız gerek.)
+
+benv klasörümüze çıkıyoruz; 
+
+<terminal> ->
+
+```bash
+.....BlogApp1\src>cd ..
+```
+
+
+```bash
+.....BlogApp1>pip install django-crispy-forms
+.....BlogApp1>pip freeze > requirements.txt
+```
+
+```bash
+py -m pip install --upgrade pip
+```
+
+
+crispy forms u <settings.py> da INSTALLED_APPS e ekliyoruz, default olarak uni-form ile gelen bootstrap i bootstrap4 e çeviriyoruz;
+
+<settings.py> ->
+
+```py
+INSTALLED_APPS = (
+    ...  ,
+    # 3rd party packages
+    'crispy_forms',
+)
+
+en alt kısma gelip
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+```
+
+
+Tamam artık tüm template lerdeki (post_create.html, post_update.html) formlarımızı crispy ile güzelleştiriyoruz. 
+(    {% load crispy_forms_tags %}     ve     {{form|crispy}}    ile)
+
+önceki <post_create.html> ->
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button type="submit">POST</button>
+</form>
+
+{% endblock content %}    
+```
+
+
+
+sonraki <post_create.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form|crispy}}
+    <button type="submit">POST</button>
+</form>
+
+{% endblock content %}    
+```
+
+
+tabi crispy i install ederken server ı durdurmuştuk, tekrar environment imizi activate edip src klasörümüzün içine yani manage.py dosyamızla aynı seviyeye gelip runserver yapıyoruz, create page imize geliyoruz ve çalıştığını görüyoruz.
+
+
+
+önceki <post_update.html> ->
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Update {{ object.title }}</h2>
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Update</button>
+</form>
+
+{% endblock content %}
+    
+```
+
+
+sonraki <post_update.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<h2>Update {{ object.title }}</h2>
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit">Update</button>
+</form>
+
+{% endblock content %}
+    
+```
+
+çalıştırdık, login olduğum user ile yapılmış bir post u update etmeye çalıştığımda karşımıza gelen sayfa crispy ile düzeltilmiş sayfa olduğunu gördük, çalışıyor..
+
+
+
+Birkaç şey eksik kaldı, view count u koyacağız, 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
