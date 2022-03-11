@@ -2718,38 +2718,331 @@ sonraki <post_update.html> ->
 çalıştırdık, login olduğum user ile yapılmış bir post u update etmeye çalıştığımda karşımıza gelen sayfa crispy ile düzeltilmiş sayfa olduğunu gördük, çalışıyor..
 
 
+soru: crispy e ayar yapma? sayfayı tam olarak kaplamasın. div e vereceğimiz class ile mi yapılacak?
+div e class vererek de olur, forms da vidget ile oluşturduğunuz field lara class verebiliyorsunuz, classda bootstrap class ını seçip daha küçük form olarak o class ı değiştirebilirsiniz, inputlara class vermek istiyorsanız vidget attribute ü ile class verebilirsiniz. veya bir div içeririsine alıp divin boyutunu değiştirebilirsiniz.
+
 
 Birkaç şey eksik kaldı, view count u koyacağız, 
 
+Şimdi <post_create.html> template inin html-css kısmını değiştiriyoruz, birkaç tane class verdik bootstrap ile ; djangonun crispy forms paketi ile de formumuzu güzelleştirdik,
+
+önceki <post_create.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form|crispy}}
+    <button type="submit">POST</button>
+</form>
+
+{% endblock content %}    
+```
+
+
+sonraki <post_create.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h3>Blog Post</h3>
+        <hr>
+        <form action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{form|crispy}}
+            <button type="submit" class="btn btn-outline-info">POST</button>
+        </form>
+    </div>
+</div>
+{% endblock content %}    
+```
+
+
+Şimdi <post_delete.html> template inin html-css kısmını değiştiriyoruz, birkaç tane class verdik bootstrap ile ; djangonun crispy forms paketi ile de formumuzu güzelleştirdik, Burada load static de denmiş ama yazılmasa da olur.
+
+önceki <post_delete.html> ->
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<p>Are you sure delete {{ object.title }}</p>
+<form action="" method="POST">
+    {% csrf_token %}
+    <a href="{% url 'blog:list' %}">Cancel</a>
+    <button type="submit">Yes</button>
+</form>
+
+{% endblock content %}
+```
+
+
+
+sonraki <post_delete.html> ->
+
+```html
+{% extends 'base.html' %}
+<!-- {% load static %} -->
+{% block content %}
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        <div class="card card-body">
+            <p>Are you sure delete "{{ object }}"?</p>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <a href="{% url 'blog:list' %}" class="btn btn-warning">Cancel</a>
+                <input type="submit" class="btn btn-danger" name="Confirm" />
+                <!-- <button type="submit" class="btn btn-danger">Yes</button> -->
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+```
 
 
 
 
+Şimdi <post_update.html> template inin html-css kısmını değiştiriyoruz, birkaç tane class verdik bootstrap ile ; djangonun crispy forms paketi ile de formumuzu güzelleştirdik, Burada load static de denmiş ama yazılmasa da olur.
+
+önceki <post_update.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<h2>Update {{ object.title }}</h2>
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit">Update</button>
+</form>
+
+{% endblock content %}
+    
+```
 
 
 
+sonraki <post_update.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="container card mb-3 pb-3">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h3>Update Post</h3>
+            <hr>
+            <form action="" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-outline-info">Update</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+```
+
+çalıştırdık, fonksiyonlarımızı kontrol ediyoruz, detail e gidiyoruz, comment ekliyoruz, sayısının arttığını, like ladığımız zaman sayının artıp azaldığını gördük, 
+Login fonksiyonu ekleyeceğiz, login olmazsa comment kısmını göstermeyecek, login to comment diyeceğiz, tıklayınca login e gidecek.
+
+ Blog application tarafı tamam gibi user application a geçeceğiz, bir tane Profile page oluşturacağız, profile a gideceğiz, edit yapabilecğiz, login logout ekleyeceğiz, register ekleyeceğiz, tamamen normal bir siteye gittiğinizde nasıl görünüyorsa, login logout nasıl oluyorsa aynı şekilde yapacağız.
+
+Şimdi yeni bir application (user) başlatalım, src klasörümüzün içinde, blog app imizle aynı seviyede (manage.py file ile aynı seviyede) terminale gidiyoruz ;
+
+<terminal> ->
+
+```bash
+py manage.py startapp users
+```
+users app imiz geldi, settings.py a gidip app imiz ekleyelim,
+
+<settings.py> ->
+
+```py
+INSTALLED_APPS = [
+    'django.contrib.staticfiles',
+    # my_apps
+    'blog.apps.BlogConfig',
+    'users',
+    # or
+    # 'blog'
+    # 3rd party packages
+    'crispy_forms',
+]
+```
+
+(settings.py da app imizin ismi ile kaydettik INSTALLED_APPS e ama bizim application umuzun ismi users olduğu için djangoda default olarak bu ismi kullandığı için, farklı yerlerde veya signals kullanırken sıkıntı çıkartıyor, farklı bir yere yazmanız gerekiyor. O yüzden app imizi settings.py a kaydederken uzun haliyle kaydediyoruz ki sıkıntı çıkarmasın bize signals kullanırken. Ayrıca alışkanlık edinin app inizi uzun haliyle kaydedin INSTALLED_APP e . )
+
+<settings.py> ->
+
+```py
+INSTALLED_APPS = [
+    'django.contrib.staticfiles',
+    # my_apps
+    'blog.apps.BlogConfig',
+    'users.apps.UsersConfig',
+    # or
+    # 'blog'
+    # 3rd party packages
+    'crispy_forms',
+]
+```
+
+Şimdi users da profile sayfamız için model oluşturacağız, kendimize göre field lar belirledik (kullanıcı ile ilgili bilgi almak için), user ımız profile ile ilişkili olması lazım, bir user ın bir profile ı olması lazım, bir user ın birden fazla profile ı olamaz, yani onetoone relation olması lazım,
+user = model.OneToOneField(User,)  User modelimiz vardı ya onunla bire bir ilişki kuruyoruz, tabi User modelimizi de import ediyoruz (blog app imizde User modelini djangonun default User modelinden almıştık, burada da yine aynı yerden import ediyoruz, django.contrib.auth.models den djangonun default User modelini import ediyoruz), on_delete=models.CASCADE   (user silindiğinde profile da silinsin istiyoruz)
+image = models.ImageField(upload_to=  , default=  )   Bir tane profile image ı olsun, iki parametre veriyorduk, biri upload yani nereye yüklesin? ,  diğeri kullanıcı register ile user oluşturduğu zaman otomatik olarak bir profile page i oluşacak bu profile page inin de default bir resmi olacak bu kullanıcının,
+şimdi diğer modelde bu upload değişkenine dinamik birşey yazmıştık media_root klasörünün  içerisinde dinamik olarak bir klasör oluşturmuştuk o klasörün içerisine otomatik olarak kendisi kaydediyordu.Nasıl yapmıştık? bir tane fonksiyon/method yazmıştık (path/klaör oluşturmak için) modelimizin üzerinde; Burada da aynısını yapıyoruz;
+def user_profile_path(instance, filename) iki parametre alıyordu, biri instance (instance dan kasıt profile dan üreteceğimiz obje), diğeri filename
+return 'user/{0}/{1}'.format(instance.user.id, filename) settings.py da belirttiğimiz media_root klasörünün altına user klasörü, onun da altına, {0} olan kısma instance ın user id sini isim olarak alan bir klasör koyacak, {1} olan kısma da filename i isimli dosyayı koyacak ve user kalsörünün altına tıpkı media_root kalsörünün altına olduğu gibi dinamik olarak iç içe klasör oluşturacak.
+def user_profile_path(instance, filename):
+    return 'users/{0}/{1}'.format(instance.user.id, filename)
+image field ının upload_to parametresine de user_profile_path i yazacağız, 
+Kullanıcıdan aldığımız tüm video ve resimler bu settings.py da tanımlamış olduğumuz media_root un altına otomatik olarak gidecek, ama bu media_root un altında toplanan resimler karman çorman olmasın, hangi app e ait olduğu anlaşılsın diye bir dizin yapısında olması için blog app den gelenleri blog klasörünün altına , users app den gelenleri user kalsörünün altına kaydet.
+default olarak da daha önceden media_root klasörüne yüklediğimiz avatar.png resmini koy diyoruz.
+
+bio = models.TextField(blank=True) bir de bio ekliyoruz, (daha farklı fieldlar da eklenebilir.)
+str methodu tanımlıyoruz (db de bize user olarak göstersin.)
+
+users app in  <models.py> dosyasına gidip ;
+
+<models.py> ->
+
+```py
+from django.db import models
+from django.contrib.auth.models import User
+
+def user_profile_path(instance, filename):
+    return 'users/{0}/{1}'.format(instance.user.id, filename)
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=user_profile_path, default='avatar.png')
+    bio = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.user
+```
 
 
+terminale gidip, yeni bir model oluşturduğumuz için migrations ve migrate yapıyoruz, (tabi manage.py dosyası ile aynı sevide olduğumuza dikkat ederek, burada src klasörünün içerisinde bulunuyor manage.py)
+
+<terminal> ->
+
+```bash
+py manage.py makemigrations
+py manage.py migrate
+```
 
 
+users app in <admin.py> ına gidip, users app inin models.py ından Profile modelimizi import edip, admin site a register ediyoruz.
+
+users <admin.py> ->
+
+```py
+from django.contrib import admin
+from .models import Profile
+
+admin.site.register(Profile)
+```
+
+admin page imize gidip bakıyoruz, evet users application ımız ve içerisinde profile modelimizi görüyoruz.
+Mesela profiles modelimize first name last name de ekleyebilirsiniz, str methodunu şekillendirebilirsiniz, 
+Yeni bir profil oluşturduk, umit Profile diye gösteriyor bize, default olarak da avatar resmini otomatik koydu.
+
+users <models.py> ->
+
+```py
+from django.db import models
+from django.contrib.auth.models import User
+
+def user_profile_path(instance, filename):
+    return 'users/{0}/{1}'.format(instance.user.id, filename)
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=user_profile_path, default='avatar.png')
+    bio = models.TextField(blank=True)
+    
+    def __str__(self):
+        return "{} {}".format(self.user, 'Profile')
+```
+
+Şimdi arkadaşlar biz bu profile ı manuel olarak oluşturduk. Biz yeni bir user oluşturduğumuzda yada bir user register olduğu zaman, o user ın profile ının da otomatik olarak oluşmasını istiyoruz.
+
+(Her user oluşturulduğunda, otomatik olarak bunun bir de profile ı oluşturulsun!
+Bunun için <signals.py> oluşturuldu,
+Bunda mantık şu bir tane model olacak, bu model signal gönderecek, bir receiver  olacak o receiver ın altına fonksiyon yazıp, o fonksiyonla ne işlem yapacağımızı yazacağız, Burada bizim sender ımız User, User modelimizden bir User oluşturulduğu zaman ama ne zaman bu User oluşturulduktan sonra yani save ettikten sonra bu işlemi gerçekleştir yani post_save , sonra create_profile diye bir fonksiyon yazıyoruz, bu sender ı alacak, instance ı alacak, created ı alacak neden? post_save de create edildikten sonra olduğu için if created codition ını kullanabilmek için,  **kwargs alacak, sonra eğer bu User dan bir tane instance oluşturulmuşsa, git Profile dan Profile instance ı oluştur. 
+Bunu yapmak için apps.py a gidip ready methodunu yazmamız gerekiyor.)
+
+Geçtiğimiz bölümde signals lardan bahsedilmişti, postsave, presave, postdelete, predelete...
+yani bir save işlemi yaptıktan sonra, yapmadan önce bir sinyal gönder, o sinyale istinaden farklı bir işlem yapılsın..
+şimdi burada da diyoruz ki bir user oluşturulduğunda, Profile objesi/instance ını otomatik olarak oluştur diyeceğiz.
+blog app imizde ne yapmıştık <signals.py>  diye bir dosya oluşturmuştuk, burada da (users app imizin içinde) bir tane oluşturuyoruz,
+Şuna karar vermemiz gerekiyor, postsave olduktan sonra veya presave (kaydettikten sonra mı? kaydetmeden önce mi?) burada kaydettikten sonra, yani user ı oluşturduktan sonra bana bir tane profile create etmesini istiyoruz.
+signals larımızı import ediyoruz, (bunları ezberlemek zorunda değilsiniz, document den bakarsınız)
+from django.db.models.signals import post_save
+şimdi burada ne kullanacağız? default olarak gelen bir tane user modelimiz vardı ya hani biz user ı orada oluşturuyoruz, onun için, signals bana user gönderecek , user ı burada import etmemiz gerekiyor, (signal i gönderecek olan şey bu. yani user oluşturulduğunda bir sinyal gönderecek 'yeni bir user oluşturuldu, sen de şunu yap!')
+from django.contrib.auth.models import User
+daha sonra bir tane de reciver yani bu signal i alan receiver import etmemiz gerekiyor,
+from django.dispatch import receiver
+bir de neyi import edeceğiz? biz user create edildiğinde profile oluşmasını istiyoruz ya işte o Profile modelini import etmemiz gerekiyor,
+from .models import Profile
+Bu receiver bir decorator dü @receiver, içerisine iki tane parametre alıyor, biri ne kullanacak (burada post_save), diğeri de sender kim olacak? (burada User modelimiz olacak sender=User)
+@receiver(post_save, sender=User):
+create profile oluştur, birkaç tane parametre alıyor, sender (kim gönderdi bunu bana), instance (User dan oluşan obje) , post_save ekstaradan created diye birşey alıyor (neden? eğer user modeli created edildiyse şartını koyacağız onun için, ve **kwargs bunu yazmak zorunluluğu (django bazı kw arguments ları kendisi koyuyor, onları karşılamak için bu **kwargs kullanıyoruz.) var.)
+def create_profile(sender, instance, created, **kwargs):
+eğer instance dan gelen User modeli create edildiyse:
+if created:
+Profile objesi create et, image ve bio otomatik oluşturulduğu için signals a sadece user ı gönderiyoruz, user da burada instance dan gelen class (Biz mesela yeni bir user oluşturuyoruz ya manuel olarak, aslında bu bizim user clasından oluşturduğumuz bir instance oluyor. python mantığında bir class dan üretilen herşey o class ın bir instance ı oluyor.)
+Eğer bir user create edilmişse onun instance ı user a eşitle 
+Pofile.objects.create(user=instance)
+
+users <signals.py> ->
+
+```py
+from django.db.models.signals import post_save
+from django.contrib.auth.models import User
+from django.dispatch import receiver
+from .models import Profile
+
+@receiver(post_save, sender=User)
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+```
+
+oluşturduğumuz bu <signals.py> ı, users app inin <apps.py> ında UsersConfig class ında ready methoduna import etmemiz gerekiyor. 
+def ready(self):
+    import users.signals
+
+users <apps.py> ->
+
+```py
+from django.apps import AppConfig
+
+class UsersConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'users'
+
+    def ready(self):
+        import users.signals
+```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+login logout ayrı bir app içerisinde tanımlarız,
 

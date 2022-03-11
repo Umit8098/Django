@@ -2,12 +2,19 @@
 {% load crispy_forms_tags %}
 {% block content %}
 
-<h2>Update {{ object.title }}</h2>
-<form action="" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit">Update</button>
-</form>
+<div class="container card mb-3 pb-3">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h3>Update Post</h3>
+            <hr>
+            <form action="" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-outline-info">Update</button>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock content %}
     
