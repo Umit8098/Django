@@ -3046,3 +3046,442 @@ class UsersConfig(AppConfig):
 
 login logout ayrı bir app içerisinde tanımlarız,
 
+- ARAŞTIR !
+Bizim yazdığımız like çok düzgün değil, like yaptığımız zaman sayfa komple render oluyor, bulunduğu kısım yani sadece like yenilenmiyor, bunlar genelde AJAX (Asyncron Javascript Xml) ile yazılıyor. AJAX backende sayfayı refresh etmeden veri göndermek için kullanılıyor. Html sayfasında AJAX kodu yazıyoruz Javascript ile,  bu sefer Http response gönderiyoruz databse e Javascript koduyla , GET POST methodu yapabiliyoruz. O zaman like yapınca tüm sayfanın yenilenmesinden kurtuluyoruz.
+
+Flusk daha basit ama djangonun builtin sağladığı security özellikleri yok, orm yapısı yok, flusk node js ile muadil bir framework
+
+
+şuan autentication login logout larına nereden ulaşacağız? onları göreceğiz, 
+
+login logout nasıl olacağız? login için form oluşturup kendimiz yapabiliriz, logout için gerek yok.
+
+login için djangonun otomatik olarak oluşturduğu bir form var, ayrıca şöyle bir builtin yapısı da var; login button ının yanında forgot Password? diy ebir link var, buna tıklayınca sisteme kayıtlı olan email adresinizi istiyor, mail inizi girip request reset yani reset talebi ne basınca emailinize otomatik bir mail gönderiyor, email e gelen mail de istenen linke tıklayınca da yeni bir reset password oluşturma ekranı geliyor.
+
+register için otomatik olarak oluşturulmuş bir bir form yok, bunu kendimiz yazdık,
+
+bizim users app imizde bir <urls.py> oluşturup projenin <urls.py>  ına dahil etmemiz lazım,
+project/cblog <urls.py> a ekledik users app imizin urls ini
+
+project/cblog <urls.py> ->
+
+```py
+from django.conf import settings
+from django.conf.urls.static import static 
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('blog.urls')),
+    path('users/', include('users.urls')),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+```
+
+
+django.contrib.auth  dan   views as auth_views   i import ediyoruz  (views i import ediyoruz ama genelde best practice djangonun authentication view lerini import ettiğimiz zaman yeniden isimlendiriliyor. burada as auth_views diye yeniden isimlendirdik.) bu views de neler var? Bu normal her app de yazdığımız gibi view ler bunlar. Class base view ler. Burada bize ne vermişler? LoginView vermiş, LogoutView vermiş, PasswordResetView, PasswordResetDoneView, yani biz burada kendimiz view yazmak yerine buradaki viewleri import edip (normalde kendimiz ne yapıyorduk? from .views import viewimiz yazdığımız view i import ediyorduk.) ama burada komple views i import edip bunun içerisinde işimize yarayacak view leri kullanacağız.
+
+path imizi yazıyoruz,
+bunları daha sonra düzenleyeceğiz,
+burada diyoruz ki url de users dan sonra login gelirse yani users/login/ şu view e git diyoruz ama view i biz yazmadık, auth_views deki default viewlerden aldık.
+path("login/", auth_views.LoginView.as_view(), name='login')     (auth_views in içindeki LoginView i al, as_view() ekliyoruz içine parametreler de alabiliyor, bahsedecek, name='login' yazmak zorundayız,neden? documandan baktık, hangi view e hangi isim vermemiz gerektiği yazıyor orada)
+django.contrib.auth un içindeki view.py ın içine girerek LoginView i inceliyoruz, mesela template name i değiştireceğiz, bizim yazacağımızdan daha güzel bir view yazmış, siz yazmaya kalksanız bukadar iyi yazamazsınız. default değerler üzerinde değişiklik yapmak istiyorsanız burayı inceleyip, bununla uğraşmanız gerekiyor djnagonun handikapı da bu.
+bunun aynısını logout için de yapacağız.
+registration sağlamıyor django, registration için form oluşturacağız, o formu frontend e göndereceğiz, default olarak verdiği birşey yok, view ini de biz yazacağız,
+
+users <urls.py> ->
+
+```py
+from django.urls import path
+from django.contrib.auth import views as auth_views
+
+urlpatterns = [
+    path('login/', auth_views.LoginView.as_view(), name='login' ),
+]
+```
+
+
+şimdi registration formunu yazop, registration view ini yazalım, users app imizin içinde <forms.py> dosyası oluşturuyoruz, içine registration form oluşturacağız, formu da django nun UserCreationForm undan inherit ederek oluşturacağız.
+UserCreationForm u inceliyoruz, bu form bize password1 ve password2 yi veriyor, class meta ile de User modelinden de ekstra olarak username i alıyor. password1 ve password2 yi kendisi ekliyor, class meta ile de ekstra olarak User modelinden de username i ekliyor, bize default olarak bir UserCreationForm vermiş ancak biz buna ekstradan bir de email field ı eklemek istiyoruz, ekstradan email field ı koyacağız.
+djangodan forms ları import ediyoruz,
+django.contrib.auth.models den default olarak bulunan User modelimizi import ediyoruz (username için),
+django.contrib.auth.forms dan UserCreationForm u import ediyoruz
+class RegisterationForm(UserCreationForm):  (UserCreationForm dan inherit ediyoruz, UserCreationForm da forms.ModelForm dan tüm özellikleri inherit ettiği için bizim tekrardan forms.ModelForm dan import etmemize gerek yok. Yani biz UserCreationForm dan import ettiğim zaman artık RegistrationForm da  forms.ModelForm dan inherit etmiş olacağız, bundan dolayı şunu yapabiliriz; Class Meta: Normalde bunu modelForm da kullanabiliyorduk ya yukarıda modelForm belirtmedik ama zaten UserCreationForm form.ModelForm dan inherit etmişti. Bu özelliğe artık RegistrationForm umuz da sahip.)
+model = User
+fields = ('username', 'email') burada User modelimizden username ve email field larını da ekliyoruz.User modelindeki tüm fieldları ekleyebiliriz. 
+
+
+users <forms.py> ->
+
+```py
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+
+class RegisterationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+```
+
+şuan user create ederken sadece username istiyor, çünkü username zorunlu alanımız, email zorunlu alan değil, ama biz kullanıcıdan zorunlu olarak email adresi almak istiyoruz, eğer password ünü unutmuşsa email ine mesaj gitsin, oradan reset yapsın. Eğer email ini unique olarak istemezsek sıkıntı olur. emeil e de custom validation yazacağız. bunun için bir method tanımlıyoruz.
+eğer djangoda biz bir field için validation yazacaksak clean_fieldname ismini vermemiz gerekiyor, burada email için validation yazacağımız için clean_email diye isimlendiriyoruz.
+def clean_email(self):
+email = self.cleaned_data['email']  (formun içerisindeki kullanıcının doldurduğu email i al (formun içerisinden bir veri alınırken best practice cleaned_data ile alınır))
+if User.objects.filter(email=email).exists()    (email field ı User modelimizde kayıtlı olduğundan kontrol ediyoruz; yukarıda tanımladığımız email i olan Userları bana filter et! bu şey exists ise yani kullanıcının gidiği emailin aynısından varsa:)
+raise forms.ValidationError('Please use another Email, that one already taken')  (ValidationError forms un içinde,  validation error yükselt)
+eğer yoksa hiçbir işlem yapmayıp,
+return email     (kullanıcının girdiği email i return et diyoruz.)
+ve email custom validation kısmı da tamam, validation methodumuzu yazdık.
+
+users <forms.py> ->
+
+```py
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+
+class RegisterationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+        
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Please use another Email, that one already taken')
+        return email
+
+```
+
+/*******************/
+
+custom validation örneği:
+first name ekledik ve bir validation yazdık içeriğinde a varsa hata döndür.
+users <forms.py> ->
+```py
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+
+class RegisterationForm(UserCreationForm):
+    email = forms.EmailField()
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name')
+        
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Please use another Email, that one already taken')
+        return email
+
+    def clean_first_name(self):
+        name = self.cleaned_data['first_name']
+        if "a" in name:
+            raise forms.ValidationError('Your name include "a"')
+        return name
+    
+```
+
+
+/*******************/
+
+
+Registration formumuz tamam, artık view ile url vasıtasıyla template imize koyacağız.
+users <views.py> a gidip view imizi yazalım, önce users <forms.py> dan RegistrationForm umuzu import ediyoruz, ardından;
+def register(request):     
+form = RegisterationForm(request.POST or None) (request post ise post ile doldur değilse None Boş render et!)
+if form.is_valid():  eğer form valid ise 
+form.save()    formu kaydet
+
+users <views.py> ->
+
+```py
+from django.shortcuts import render
+from .forms import RegisterationForm
+
+def register(request):
+    form = RegisterationForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+```
+
+şimdi bir html üretip orada render edelim, onun için ne yapmamız gerekiyor ?
+context oluşturup formu içerisine koyup return render ile template e göndereceğiz, nereye? users ın içerisinde templates klasörü oluşturup içine app imizin ismi ile bir klasör daha oluşturup onun da içine register.html template imizi oluşturuyoruz, işte buraya 
+
+users <views.py> ->
+
+```py
+from django.shortcuts import render
+from .forms import RegisterationForm
+
+def register(request):
+    form = RegisterationForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        # return redirect('login')  login page imiz henüz yok.
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'users/register.html', context )
+
+```
+
+users <urls.py> a gidip path tanımlayalım; (login path ini şimdilik silelim)
+
+users <urls.py> ->
+
+```py
+from django.urls import path
+from django.contrib.auth import views as auth_views
+from .views import register
+
+urlpatterns = [
+    path('register/', register , name='register' ),
+]
+
+```
+
+
+users templates users <register.html> ->
+
+```html
+{% extends 'base.html' %}
+<!-- {% block title %}Register{% endblock %} -->
+{% load crispy_forms_tags %}   
+{% block content %}
+<div class="content-section">
+    <form action="" method="post">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Join Today</legend>
+            {{ form|crispy }}
+        </fieldset>
+        <div class="form-group">
+            <button class="btn btn-outline-info" type="submit">Sign Up</button>
+        </div>
+    </form>
+    <div class="border-top pt-3">
+        <small class="text-muted">
+            {% comment %}{% url 'login' %}{% endcomment %}
+            Already have an account?<a class="ml-2" href="#">Sign In</a>
+        </small>
+    </div>
+</div>
+{% endblock content %}
+     
+```
+
+
+normalde register ımıza normalde nereden ulaşıyorduk? eğer login değilsek navbarda sağ üst köşede login ve register linkleri var oradan ulaşıyorduk. Eğer register linkini göremiyorsak demekki login olmuşuz, Adminden logout ile çıkış yapıyoruz ve tekrar navbar ımıza bakıyoruz evet register geldi. Şimdi navbar template ine gidip bu register url ini ekleyelim, 
+
+src templates <navbar.html> ->
+
+```html
+<header class="site-header">
+    <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top ">
+        <div class="container">
+            <a class="navbar-brand mr-4" href="{% url 'blog:list' %}">Umit Blog</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar Toggle" 
+            aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toogler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarToggle">
+                <div class="navbar-nav mr-auto">
+                    <a class="nav-item nav-link" href="{% url 'blog:list' %}">Home</a>
+                    <a class="nav-item nav-link" href="#">About</a>
+                </div>
+                <!-- Navbar Right Side -->
+                <div class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    {% comment %} {% url 'logout' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="#">Logout</a>
+                    {% comment %} {% url 'profile' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="#">Profile</a>
+                    <a class="nav-item nav-link" href="{% url 'blog:create' %}">New Post</a>
+                    {% else %}
+                    {% comment %} {% url 'profile' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="#">Login</a>
+                    {% comment %} {% url 'register' %} {% endcomment %}
+                    <a class="nav-item nav-link" href="{% url 'register' %}">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+```
+
+
+evet registration page imiz çalıştı, register da oluyoruz, register olduğumuzda da aynı sayfada kalıyoruz çünkü redirect etmedik login page imiz henüz hazır değil diye, ancak register olabiliyor, admin panelden gördük register olunduğunu.  
+email field ımız da geldi, ancak email field ımız şu anda doldurulması zorunlu alan değil, onu zorunlu alan yapacağız.
+Email default olarak (blank=True) zorunlu alan olarak gelmiyor, ama override edebiliyoruz, 
+<forms.py> da oluşturduğumuz RegistrationForm un bir field ı olan email field ını yine orada override edebiliriz (yani bazı özelliklerini geçersiz kılabiliriz),
+içerisinde fieldlarımızı belirlediğimiz class Meta nın hemen üzerinde yapıyoruz bu override işlemini, şöyle yapıyoruz;
+email = forms.EmailField()   (Bu şekilde içerisine hiçbirşey yazmazsak, boş bırakırsak zorunlu alan haline gelir. required=True haline gelir, default hali blank=True dur. (buradaki blank formdaki required a denk geliyor yani))
+
+users <forms.py> ->
+
+```py
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+
+class RegisterationForm(UserCreationForm):
+    email = forms.EmailField()
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+        
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Please use another Email, that one already taken')
+        return email
+    
+```
+
+çalıştırdık, register a gittiğimizde email in yanında yıldızı gördük, yani zorunlu alan olmuş (tabi bu yıldızı crispy yapıyor.), kullanıcı oluşturduk, oluştuğunu da admin page de gördük, aynı zamanda signals ile de profile ınıda oluşturdu, oluştururken email i zorunlu alan olduğu için istedi, sign up yaptık yine bizi aynı sayfada tuttu çünkü redirect etmemiştik.
+
+NOT: Eğer burada fields kısmında sadece ('email',)  diye yazarsak sadece email ve passwordleri isteyecek, ancak dikkat tupple olduğu için ve tek item olduğu için email item ının sonuna virgül istiyor.
+
+Şimdi login logout a gelmeden şu profile page imizi render temek istiyoruz;
+Bunun için bizim bir form a ihtiyacımız var, (Şuan için aslında halihazırda bizim profile modelimiz var ve dolu nasıl dolu? user create ederken signals ile bir de Profile modeli oluşturmuştuk ya model.py da (user,image, bio field ları olan))
+aslında bizim bir update form gibi olacak, yani profile page i update form gibi render edeceğiz db den, getirirken içerisini dolu getireceğiz, formları da buna göre isimlendireceğiz update_form diye isimlendireceğiz.
+users <forms.py> a geliyoruz, Bizim normalde Profile modelimizde user, image ve bio fieldlarımız var, ama biz profile page inde ekstradan username ve email field larının da olmasını istiyoruz. Bunun için iki form yapacağız, username ve email i (User modelinden aldığımız fieldlar) bir form da, diğer form da da image, bio kısmını koyacağız ve iki formu tek bir sayfada birleştireceğiz. Bunu da özellikle iki form tek sayfada nasıl birleştirilir görmek için, 
+class PorfileUpdateForm(forms.ModelForm):   (forms.ModelForm dan inherit ediyoruz)
+class Meta:
+model = Profile            (Modelimiz Profile olacak, Ayrıca Profile ı from .models import Profile ile import ediyoruz.)
+fields = ("image","bio")    (user field ını almıyorum, zaten bu aslında Primary Key şeklinde, OneToOne, buradan sadece iki tane field ı image ve bio yu alacağız.)
+
+class UserUpdateForm(forms.ModelForm):
+class Meta:
+model = User   (Modelimiz User olacak (User zaten import edilmiş))
+fields = ("username","email")
+
+users <forms.py> ->
+
+```py
+from django import forms
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from .models import Profile
+
+class RegisterationForm(UserCreationForm):
+    email = forms.EmailField()
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+        
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Please use another Email, that one already taken')
+        return email
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ("image","bio")
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("username","email")
+
+```
+
+Evet iki formumuz da hazır şuan, user <views.py> ımıza geliyoruz, profile page imiz için bir view yazacağız, 
+def profile(request):
+iki formumuz vardı onları alacağız birine u_form (UserUpdateForm), diğerine de p_form (ProfileUpdateForm) diyoruz,
+u_form = UserUpdateForm(request.POST or None, instance=request.user) (Biz ayrıca form bize db deki bilgilerle dolu gelsin istiyoruz, bunun için specific birn instance belirtiyoruz, instance için hangi user olduğunu belirtmemiz lazım, django da zaten request.user ile bize hangi user ile login olunduğunu verdiği için bu şekilde yazıyoruz.)
+Aynısını diğeri için de yapıyoruz.
+p_form = ProfileUpdateForm(request.POST or None, request.FILES or None, instance=request.user) (Burada bir de image file olduğu için şunu ekliyoruz; requst.FILES or None, yine formu dolu istiyoruz (yani şuanda login olmuş user ın profile ına ulaşıp onu instance ile p_form a yüklüyoruz) bunun için bir specific bir instance belirtiyoruz, instance=request.user.profile)   
+bunlara ulaştıktan sonra formu validation etmemiz gerekiyor, ama burada iki tane formumuz var bunun için;
+if u_form.is_valid() and p_form.is_valid():  (bu iki form da valid ise and ile sağladık or olsa birisi valid olsa geçer)
+u_form.save()
+p_form.save()
+formları kaydettikten sonra aynı sayfaya kalınmasını istiyoruz,
+return redirect(request.path)   (aynı sayfaya return et,  redirect i import et.)
+formlarımızı kaydettik, şimdi bunları template imize göndereceğiz,
+context={
+    "u_form":u_form
+    "p_form":p_form
+}
+return render(request, "users/profile.html", context )
+
+user <views.py> ->
+```py
+from django.shortcuts import render, redirect
+from .forms import RegisterationForm, UserUpdateForm, ProfileUpdateForm
+
+def register(request):
+    form = RegisterationForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        # return redirect('login')  login page imiz henüz yok.
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'users/register.html', context )
+
+def profile(request):
+    u_form = UserUpdateForm(request.POST or None, instance=request.user)
+    p_form = ProfileUpdateForm(request.POST or None, request.FILES or None, instance=request.user.profile)
+    
+    if u_form.is_valid() and p_form.is_valid():
+        u_form.save()
+        p_form.save()
+        return redirect(request.path)
+    
+    context = {
+        "u_form": u_form,
+        "p_form": p_form,
+    }
+    
+    return render(request, "users/profile.html", context)
+```
+
+
+users app imizin içerisindeki templates klasörünün içerisindeki app imizin ismini taşıyan klasörümüzün içerisinde <profile.html> template imizi oluşturuyoruz, 
+
+users templates users <profile.html> ->
+
+```html
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="content-section">
+    <div class="media">
+        <img class="rounded-circle account-img" src="{{ user.profile.image.url }}">
+        <div class="media-body">
+            <h2 class="account-heading">{{ user.username }}</h2>
+            <p class="text-secondary">{{ user.email }}</p>
+        </div>
+    </div>
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Profile</legend>
+            {{ u_form| crispy }}
+            {{ p_form| crispy }}
+        </fieldset>
+        <div>
+            <button class="btn btn-outline-info" type="submit">Update</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}
+    
+```
+
+url ini oluşturup navbar daki linklerini aktif edeceğiz.
